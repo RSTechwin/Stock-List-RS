@@ -1457,6 +1457,12 @@ def edit_excel():
     # For GET requests, render the HTML
     return render_template('edit_excel.html')
 
+def remove_git_lock():
+    lock_file = os.path.join(os.getcwd(), ".git", "index.lock")
+    if os.path.exists(lock_file):
+        os.remove(lock_file)
+        print("Git lock file removed.")
+
 import subprocess
 
 # GitHub credentials
@@ -1465,38 +1471,29 @@ GITHUB_EMAIL = "rstechwinsetup@gmail.com"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_REPO_URL = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
 
+from threading import Lock
+
+git_lock = Lock()
+
 def push_to_github():
-    try:
-        # Set the Git directory to the current working directory
-        repo_path = os.getcwd()  # Assuming the current working directory is the repository
-        os.chdir(repo_path)  # Navigate to the Git directory
+    with git_lock:
+        try:
+            remove_git_lock()
+            repo_path = os.getcwd()
+            os.chdir(repo_path)
 
-        # Stage all changes
-        subprocess.run(["git", "add", "."], check=True)
+            run_git_command(["git", "add", "."])
+            result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+            if result.stdout.strip():
+                run_git_command(["git", "commit", "-m", "Update stock data"])
+            run_git_command(["git", "pull", "--rebase"])
+            run_git_command(["git", "push", "origin", "main"])
 
-        # Check if there are any changes to commit
-        result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
-        if result.stdout.strip():  # If there are changes
-            # Commit changes
-            subprocess.run(["git", "commit", "-m", "Update stock data"], check=True)
-
-        # Stash any uncommitted changes if they exist
-        subprocess.run(["git", "stash"], check=True)
-
-        # Pull the latest changes with rebase
-        subprocess.run(["git", "pull", "--rebase"], check=True)
-
-        # Apply stashed changes back (if any were stashed)
-        subprocess.run(["git", "stash", "pop"], check=True)
-
-        # Push changes to GitHub
-        subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("Changes pushed to GitHub.")
-    except subprocess.CalledProcessError as e:
-        print(f"Git operation failed: {e}")
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-
+            print("Changes pushed to GitHub.")
+        except subprocess.CalledProcessError as e:
+            print(f"Git operation failed: {e}")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
 
 
 if __name__ == '__main__':
