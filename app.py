@@ -1463,6 +1463,14 @@ def remove_git_lock():
         os.remove(lock_file)
         print("Git lock file removed.")
 
+def run_git_command(command):
+    try:
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error running Git command: {' '.join(command)}\n{e}")
+        raise
+
+
 import subprocess
 
 # GitHub credentials
