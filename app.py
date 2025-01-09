@@ -1495,17 +1495,6 @@ def push_to_github():
         print(f"Unexpected error: {e}")
 
 
-from filelock import FileLock
-
-def with_excel_lock(func):
-    def wrapper(*args, **kwargs):
-        lock_path = f"{EXCEL_FILE_PATH}.lock"
-        with FileLock(lock_path, timeout=10):
-            return func(*args, **kwargs)
-    return wrapper
-
-
-
 if __name__ == '__main__':
     # Check if the Excel file exists; if not, pull the latest version from GitHub
     if not os.path.exists(EXCEL_FILE_PATH):
