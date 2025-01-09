@@ -1467,42 +1467,38 @@ GITHUB_REPO_URL = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_
 
 def push_to_github():
     try:
-        # Initialize Git if not already initialized
+        # Check if the .git directory exists
         if not os.path.exists(".git"):
             subprocess.run(["git", "init"], check=True)
 
-        # Configure Git user details (set only if not already set)
+        # Check if the lock file exists and remove it
+        lock_file = ".git/index.lock"
+        if os.path.exists(lock_file):
+            os.remove(lock_file)
+            print(f"Removed stale lock file: {lock_file}")
+
+        # Configure Git user details
         subprocess.run(["git", "config", "--global", "user.name", GITHUB_USERNAME], check=True)
         subprocess.run(["git", "config", "--global", "user.email", GITHUB_EMAIL], check=True)
 
-        # Add files to the staging area
+        # Add the updated files to staging
         subprocess.run(["git", "add", "."], check=True)
 
-        # Commit the changes (check for staged changes before committing)
-        commit_result = subprocess.run(
-            ["git", "diff", "--cached", "--quiet"],
-            check=False,
-            capture_output=True
-        )
-        if commit_result.returncode != 0:  # There are changes to commit
-            subprocess.run(["git", "commit", "-m", "Update files"], check=True)
+        # Commit the changes
+        subprocess.run(["git", "commit", "-m", "Update stockList.xlsx"], check=True)
 
-        # Check if the remote is already added
-        remote_check = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            capture_output=True,
-            text=True
-        )
-        if remote_check.returncode != 0:  # Remote not added
+        # Check if the remote origin is already added
+        remotes = subprocess.run(["git", "remote"], capture_output=True, text=True)
+        if "origin" not in remotes.stdout:
             subprocess.run(["git", "remote", "add", "origin", GITHUB_REPO_URL], check=True)
 
-        # Push changes
-        subprocess.run(["git", "push", "-u", "origin", "main"], check=True)
+        # Push the changes to GitHub
+        subprocess.run(["git", "push", "-u", "origin", "main", "--force"], check=True)
         print("Changes pushed to GitHub successfully.")
     except subprocess.CalledProcessError as e:
         print(f"Error pushing changes to GitHub: {e}")
-    except Exception as ex:
-        print(f"Unexpected error in push_to_github(): {ex}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
 
 
 
