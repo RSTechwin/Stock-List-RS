@@ -1465,34 +1465,20 @@ GITHUB_EMAIL = "rstechwinsetup@gmail.com"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_REPO_URL = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
 
+
 def push_to_github():
     try:
-        # Check if the lock file exists and remove it
-        lock_file = ".git/index.lock"
-        if os.path.exists(lock_file):
-            os.remove(lock_file)
-
-        # Configure Git if not already configured
-        subprocess.run(["git", "config", "--global", "user.name", "YourUsername"], check=True)
-        subprocess.run(["git", "config", "--global", "user.email", "youremail@example.com"], check=True)
-
-        # Check if there are changes to commit
+        os.chdir('/path/to/your/git/repo')  # Change to the Git directory
+        subprocess.run(["git", "pull", "--rebase"], check=True)  # Sync latest changes
         subprocess.run(["git", "add", "."], check=True)
-        status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
-        if not status.stdout.strip():
-            print("No changes to commit.")
-            return
-
-        # Commit changes
-        subprocess.run(["git", "commit", "-m", "Update stockList.xlsx"], check=True)
-
-        # Push to GitHub
-        subprocess.run(["git", "push", "-u", "origin", "main", "--force"], check=True)
-        print("Changes pushed to GitHub successfully.")
+        if changes_exist():
+            subprocess.run(["git", "commit", "-m", "Update stock data"], check=True)
+            subprocess.run(["git", "push", "origin", "main"], check=True)
+            print("Changes pushed to GitHub.")
+        else:
+            print("No changes to push.")
     except subprocess.CalledProcessError as e:
-        print(f"Error pushing changes to GitHub: {e}")
-    except Exception as e:
-        print(f"Unexpected error: {e}")
+        print(f"Git operation failed: {e}")
 
 
 if __name__ == '__main__':
