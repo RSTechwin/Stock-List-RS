@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/outStockSummary.css">
+    <title>Out of Stock Summary</title>  
+</head>
+<body>
+    <div class="page-container">
+        <div class="content-container">
+            <div class="container mt-5">
+                <div class="main">
+                    <h2>Out Stock Summary</h2>
+                </div>
+                <div id="sideNav" class="sidenav">
+                    {% if session['role'] == 'admin' %}
+                    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+                    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                    <a href="{{ url_for('enterOutStock') }}">Add New Stock</a>
+                    <a href="{{ url_for('in_out_stock') }}">In/Out Stock</a>
+                    <a href="{{ url_for('edit_excel') }}">Edit Excel</a>
+                    <a href="{{ url_for('view_categories') }}">View Categories</a>
+                    <a href="{{ url_for('restoreDashboard') }}">Restore Dashboard</a>
+                    <a href="{{ url_for('deleteStock') }}">Delete Stock</a>
+                    <a href="{{ url_for('download_sheet1') }}" download>Download Stock List</a>
+                    <a href="{{ url_for('logout') }}">Logout</a>
+                    {% elif session['role'] == 'staff' %}
+                        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                        <a href="{{ url_for('enterOutStock') }}">Add New Stock</a>
+                        <a href="{{ url_for('in_out_stock') }}">In/Out Stock</a>
+                        <a href="{{ url_for('download_sheet1') }}">Download Stock List</a>
+                        <a href="{{ url_for('logout') }}">Logout</a>
+                    {% endif %}
+                    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+                </div>
+                <span class="menu-icon" onclick="toggleNav()">&#9776;</span>
+
+            <form method="GET" action="{{ url_for('out_stock_summary') }}">
+                <div class="form-group">
+                    <label for="item_search"><h4>Search Item Name:</h4></label>
+                    <input type="text" id="item_search" name="item_filter" class="form-control" placeholder="Type item name" autocomplete="off">
+                    <ul class="list-group" id="suggestions" style="position: absolute; z-index: 1000; display: none; width: 100%; max-height: 200px; overflow-y: auto;">
+                        <!-- Suggestions will appear dynamically here -->
+                    </ul>
+                </div>
+                <div class="form-group">
+                    <label for="date_filter"><h4>Filter by Specific Date:</h4></label>
+                    <input type="date" id="date_filter" name="date_filter" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="site_filter"><h4>Filter by Site Name:</h4></label>
+                    <select id="site_filter" name="site_filter" class="form-control">
+                        <option value="">Select Site</option>
+                        {% for site in sites %}
+                            <option value="{{ site }}">{{ site }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="action_filter"><h4>Filter by Action:</h4></label>
+                    <select id="action_filter" name="action_filter" class="form-control">
+                        <option value="">Select Action</option>
+                        <option value="Add">Add</option>
+                        <option value="Deduct">Deduct</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </div>
+            </form>
+
+                
+                <!-- Table for Stock Summary -->
+                <div class="table-container">
+                    {% if table_data %}
+                        {{ table_data|safe }}
+                    {% else %}
+                        <p class="mt-4">Out Stock Summary</p>
+                    {% endif %}
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <a href="?page={{ page - 1 if page > 1 else 1 }}&day_filter={{ day_filter or '' }}&site_filter={{ site_filter or '' }}" 
+                       class="{{ 'disabled' if page == 1 else '' }}">Prev</a>
+
+                    {% for num in range(1, total_pages + 1) %}
+                        <a href="?page={{ num }}&day_filter={{ day_filter or '' }}&site_filter={{ site_filter or '' }}"
+                           class="{{ 'active' if num == page else '' }}">{{ num }}</a>
+                    {% endfor %}
+
+                    <a href="?page={{ page + 1 if page < total_pages else total_pages }}&day_filter={{ day_filter or '' }}&site_filter={{ site_filter or '' }}"
+                       class="{{ 'disabled' if page == total_pages else '' }}">Next</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.getElementById('item_search').addEventListener('input', async function () {
+        const query = this.value.trim();
+        const suggestionsBox = document.getElementById('suggestions');
+        suggestionsBox.innerHTML = ''; // Clear previous suggestions
+
+        if (query === '') {
+            suggestionsBox.style.display = 'none'; // Hide suggestions box if input is empty
+            return;
+        }
+
+        try {
+            const response = await fetch(`/get_suggestions?query=${encodeURIComponent(query)}`);
+            const items = await response.json();
+
+            if (items.length > 0) {
+                items.forEach(item => {
+                    const suggestion = document.createElement('li');
+                    suggestion.className = 'list-group-item';
+                    suggestion.textContent = item;
+                    suggestion.style.cursor = 'pointer';
+
+                    suggestion.addEventListener('click', () => {
+                        document.getElementById('item_search').value = item;
+                        suggestionsBox.style.display = 'none';
+                    });
+
+                    suggestionsBox.appendChild(suggestion);
+                });
+
+                suggestionsBox.style.display = 'block';
+            } else {
+                suggestionsBox.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error fetching suggestions:', error);
+        }
+    });
+
+    document.addEventListener('click', (event) => {
+        const suggestionsBox = document.getElementById('suggestions');
+        if (!document.getElementById('item_search').contains(event.target)) {
+            suggestionsBox.style.display = 'none';
+        }
+    });
+
+        document.addEventListener("click", function(event) {
+            var sideNav = document.getElementById("sideNav");
+            var menuIcon = document.querySelector(".menu-icon");
+        
+            if (sideNav.style.width === "250px" && 
+                !sideNav.contains(event.target) && 
+                !menuIcon.contains(event.target)) {
+                sideNav.style.width = "0"; 
+            }
+        });
+
+        function closeNav() {
+            document.getElementById("sideNav").style.width = "0";  
+        }
+        function toggleNav() {
+            var sideNav = document.getElementById("sideNav");
+            if (sideNav.style.width === "250px") {
+                sideNav.style.width = "0"; 
+            } else {
+                sideNav.style.width = "250px"; 
+            }
+        }
+    </script>
+</body>
+</html>

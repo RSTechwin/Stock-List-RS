@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Stock</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(
+        15deg,
+        rgba(198, 213, 255, 0.9),
+        rgba(253, 216, 202, 0.9),
+        rgba(166, 204, 255, 0.8)
+    );
+    background-repeat: no-repeat; /* Prevent background repetition */
+    background-size: cover; /* Ensure background covers the entire viewport */
+    background-attachment: fixed; /* Keep the background fixed while scrolling */
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+    /* Match the search bar to the dropdown box */
+input[type="text"],
+select {
+    width: 300px; /* Same width as the dropdown */
+    padding: 10px; /* Adjust padding for consistency */
+    font-size: 16px; /* Match font size */
+    border: 1px solid #ccc; /* Same border style */
+    border-radius: 5px; /* Same border radius */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Optional: add a subtle shadow */
+    background-color: white; /* Background color to match */
+    outline: none; /* Remove default focus outline */
+}
+
+input[type="text"]:focus,
+select:focus {
+    border-color: #007BFF; /* Highlight border on focus */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Subtle blue glow */
+}
+
+/* Match the search button to the Confirm Delete button */
+button {
+    padding: 10px 20px; /* Adjust padding for consistency */
+    font-size: 16px; /* Match font size */
+    border: none; /* Remove default border */
+    border-radius: 5px; /* Same border radius */
+    background-color: #007BFF; /* Primary button color */
+    color: white; /* Button text color */
+    cursor: pointer; /* Pointer cursor */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+}
+
+button:focus {
+    outline: none; /* Remove focus outline */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Blue glow on focus */
+}
+</style>
+<body>
+    <!-- Side Navigation Bar -->
+    <div id="sideNav" class="sidenav">
+        {% if session['role'] == 'admin' %}
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('enterOutStock') }}">Add New Stock</a>
+        <a href="{{ url_for('in_out_stock') }}">In/Out Stock</a>
+        <a href="{{ url_for('edit_excel') }}">Edit Excel</a>
+        <a href="{{ url_for('out_stock_summary') }}">Out Stock Summary</a>
+        <a href="{{ url_for('view_categories') }}">View Categories</a>
+        <a href="{{ url_for('restoreDashboard') }}">Restore Dashboard</a>
+        <a href="{{ url_for('download_sheet1') }}" download>Download Stock List</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+        {% elif session['role'] == 'staff' %}
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('enterOutStock') }}">Add New Stock</a>
+            <a href="{{ url_for('in_out_stock') }}">In/Out Stock</a>
+            <a href="{{ url_for('download_sheet1') }}">Download Stock List</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    </div>
+    <span class="menu-icon" onclick="toggleNav()">&#9776;</span>
+
+    {% if message %}
+        <p>{{ message }}</p>  <!-- Show success message if any -->
+    {% endif %}    
+    <form id="deleteForm" method="POST">
+        
+        <label for="item_name">Select Item to Delete:</label>
+        <select id="item_name" name="item_name" required>
+            <option value="">Select an Item</option>
+            {% for item in item_names %}
+                <option value="{{ item }}">{{ item }}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+        <button type="button" onclick="confirmDelete()">Confirm Delete</button>
+    </form>
+    <script>
+        document.addEventListener("click", function(event) {
+            var sideNav = document.getElementById("sideNav");
+            var menuIcon = document.querySelector(".menu-icon");
+
+            // Check if the sidebar is open and the click is outside the sidebar and menu icon
+            if (sideNav.style.width === "250px" && 
+                !sideNav.contains(event.target) && 
+                !menuIcon.contains(event.target)) {
+                sideNav.style.width = "0"; // Close sidebar
+            }
+        });
+
+        function closeNav() {
+            document.getElementById("sideNav").style.width = "0";  // Close sidebar
+        }
+
+        function toggleNav() {
+            var sideNav = document.getElementById("sideNav");
+            if (sideNav.style.width === "250px") {
+                sideNav.style.width = "0"; // Close sidebar
+            } else {
+                sideNav.style.width = "250px"; // Open sidebar
+            }
+        }
+
+        // Function to confirm deletion
+        function confirmDelete() {
+            var itemName = document.getElementById("item_name").value;
+            var confirmation = confirm("Are you sure you want to delete the stock item: " + itemName + "?");
+            if (confirmation) {
+                document.getElementById("deleteForm").submit();  // Submit the form if confirmed
+            }
+        }
+
+        // Parse the URL for the message query parameter and show an alert if it exists
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            if (message) {
+                alert(decodeURIComponent(message)); // Decode and display the message
+            }
+        }
+    </script>
+</body>
+</html>

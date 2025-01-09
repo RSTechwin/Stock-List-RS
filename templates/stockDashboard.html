@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Dashboard</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(
+            15deg,
+            rgba(198, 213, 255, 0.9),
+            rgba(253, 216, 202, 0.9),
+            rgba(166, 204, 255, 0.8)
+        );
+        color: #333;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    
+
+        /* Side navigation bar styles */
+        .sidenav {
+            height: 100%; /* Full height */
+            width: 0; /* Initially hidden */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            top: 0;
+            left: 0;
+            background-color: #ffffff; /* White background */
+            overflow-x: hidden; /* Disable horizontal scroll */
+            transition: 0.5s; /* Smooth slide-in/out */
+            padding-top: 80px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for contrast */
+        }
+        
+        .sidenav a {
+            padding: 12px 30px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #111; /* Black text */
+            display: block;
+            transition: color 0.3s ease, background 0.3s ease;
+        }
+        
+        .sidenav a:hover {
+            color: #ffffff; /* White text on hover */
+            background-color: rgba(70, 91, 211, 0.9); /* Blue background */
+            border-radius: 5px;
+        }
+        
+        .sidenav .closebtn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 30px;
+            color: black; /* Black close button */
+            cursor: pointer;
+        }
+
+/* Burger menu icon */
+.menu-icon {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 30px;
+    color: black; /* Black burger menu icon */
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.3s ease;
+
+}
+
+.menu-icon:hover {
+    transform: scale(1.1);
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 10px;
+    margin-left:30px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+h2 {
+    font-size: 1.8rem;
+    color: #555;
+    margin-bottom: 20px;
+    margin-left:30px;
+    font-weight: normal;
+    text-transform: capitalize;
+}
+
+.table-container {
+    width: 90%;
+    margin: 20px auto;
+    overflow-x: auto;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    background: #fff;
+    padding: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    text-align: center;
+}
+
+table thead {
+    background-color: #6c5b7b;
+    color: white;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+table thead th {
+    padding: 15px;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+}
+
+table tbody td {
+    padding: 12px 15px;
+    color: #333;
+    font-size: 14px;
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #f7e4f5;
+}
+
+table tbody tr:nth-child(odd) {
+    background-color: #fff;
+}
+
+table tbody tr:hover {
+    background-color: #fce4ec;
+    cursor: pointer;
+}
+
+.footer {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #777;
+}
+ /* Add scroll bar for the table container */
+ .scrollable-container {
+    max-height: 400px; /* Adjust the height as needed */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+/* Optional: Make table headers stick to the top while scrolling */
+table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 0;
+    background-color: #6c5b7b; /* Keep the same background color */
+}
+</style>
+<body>
+    <div id="sideNav" class="sidenav">
+        {% if session['role'] == 'admin' %}
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <a href="{{ url_for('enterOutStock') }}">Add New Stock</a>
+        <a href="{{ url_for('in_out_stock') }}">In/Out Stock</a>
+        <a href="{{ url_for('edit_excel') }}">Edit Excel</a>
+        <a href="{{ url_for('out_stock_summary') }}">Out Stock Summary</a>
+        <a href="{{ url_for('view_categories') }}">View Categories</a>
+        <a href="{{ url_for('restoreDashboard') }}">Restore Dashboard</a>
+        <a href="{{ url_for('deleteStock') }}">Delete Stock</a>
+        <a href="{{ url_for('download_sheet1') }}" download>Download Stock List</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+        {% elif session['role'] == 'staff' %}
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('enterOutStock') }}">Add New Stock</a>
+            <a href="{{ url_for('in_out_stock') }}">In/Out Stock</a>
+            <a href="{{ url_for('download_sheet1') }}">Download Stock List</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    </div>
+    <span class="menu-icon" onclick="toggleNav()">&#9776;</span>
+
+
+    <!-- Main Content -->
+    <div class="main">
+        <h1>Welcome to the Stock Dashboard</h1>
+        <h2>Stock Summary</h2>
+        <div class="table-container">
+            <div class="scrollable-container">
+                <table id="stockUpdateTable" class="table">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Action</th>
+                            <th>Stock Out</th>
+                            <th>Date</th>
+                            <th>Site Name</th>
+                            <th>Taken By</th>
+                            <th>Current Stock</th>
+                        </tr>
+                    </thead>
+                                       
+                    <tbody>
+                        <!-- Recent updates will be dynamically populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>        
+    </div>
+
+    <script>
+        document.addEventListener("click", function(event) {
+            var sideNav = document.getElementById("sideNav");
+            var menuIcon = document.querySelector(".menu-icon");
+
+            if (sideNav.style.width === "250px" && 
+                !sideNav.contains(event.target) && 
+                !menuIcon.contains(event.target)) {
+                sideNav.style.width = "0";
+            }
+        });
+
+        function closeNav() {
+            document.getElementById("sideNav").style.width = "0";
+        }
+
+        function toggleNav() {
+            var sideNav = document.getElementById("sideNav");
+            sideNav.style.width = (sideNav.style.width === "250px") ? "0" : "250px";
+        }
+
+        function fetchStockUpdates() {
+    $.ajax({
+        url: "/get_stock_updates",
+        method: "GET",
+        success: function(data) {
+            if (data.error) {
+                console.error("Error:", data.error);
+                $("#stockUpdateTable tbody").html("<tr><td colspan='5'>Error loading updates</td></tr>");
+            } else if (data.length === 0) {
+                $("#stockUpdateTable tbody").html("<tr><td colspan='5'>No updates available</td></tr>");
+            } else {
+                let tbody = "";
+                data.forEach(update => {
+                    // Highlight deleted items
+                    const rowClass = update["Action"].toLowerCase() === "delete" ? "class='deleted-row'" : "";
+                    tbody += `
+                        <tr>
+                        <td>${update["Item Name"] || "--"}</td>
+                        <td>${update["Action"] || "--"}</td>
+                        <td>${update["Stock Out"] || 0}</td>
+                        <td>${update["Date"] || "--"}</td>
+                        <td>${update["Site Name"] || "--"}</td>
+                        <td>${update["Taken By"] || "--"}</td>
+                        <td>${update["Current Stock"] || 0}</td>
+                    </tr>`;
+                });
+                $("#stockUpdateTable tbody").html(tbody);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Error fetching stock updates:", error);
+            $("#stockUpdateTable tbody").html("<tr><td colspan='5'>Error loading updates</td></tr>");
+        }
+    });
+}
+
+
+        // Fetch updates when the page loads
+        $(document).ready(fetchStockUpdates);
+    </script>
+</body>
+</html>

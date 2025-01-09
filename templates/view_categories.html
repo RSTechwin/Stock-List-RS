@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Sub Categories</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(
+                15deg,
+                rgba(198, 213, 255, 0.9),
+                rgba(253, 216, 202, 0.9),
+                rgba(166, 204, 255, 0.8)
+            );
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Side navigation bar styles */
+        .sidenav {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #ffffff;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 80px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidenav a {
+            padding: 12px 30px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #111;
+            display: block;
+            transition: color 0.3s ease, background 0.3s ease;
+        }
+
+        .sidenav a:hover {
+            color: #ffffff;
+            background-color: rgba(70, 91, 211, 0.9);
+            border-radius: 5px;
+        }
+
+        .sidenav .closebtn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 30px;
+            color: black;
+            cursor: pointer;
+        }
+
+        /* Burger menu icon */
+        .menu-icon {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 30px;
+            color: black;
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-icon:hover {
+            transform: scale(1.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 80%;
+        }
+
+        .form-container table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .form-container th,
+        .form-container td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .form-container td{
+            text-align: left;
+        }
+        .form-container th {
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+        }
+
+        .form-container td label {
+            display: flex;
+            align-items: center;
+        }
+
+        .form-container td input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .form-container button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .form-container button:hover {
+            background-color: #0056b3;
+        }
+
+        @media screen and (max-width: 768px) {
+            .form-container {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="sideNav" class="sidenav">
+        {% if session['role'] == 'admin' %}
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('enterOutStock') }}">Add New Stock</a>
+        <a href="{{ url_for('in_out_stock') }}">In/Out Stock</a>
+        <a href="{{ url_for('edit_excel') }}">Edit Excel</a>
+        <a href="{{ url_for('out_stock_summary') }}">Out Stock Summary</a>
+        <a href="{{ url_for('restoreDashboard') }}">Restore Dashboard</a>
+        <a href="{{ url_for('deleteStock') }}">Delete Stock</a>
+        <a href="{{ url_for('download_sheet1') }}" download>Download Stock List</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+        {% elif session['role'] == 'staff' %}
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('enterOutStock') }}">Add New Stock</a>
+            <a href="{{ url_for('in_out_stock') }}">In/Out Stock</a>
+            <a href="{{ url_for('download_sheet1') }}">Download Stock List</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    </div>
+    <span class="menu-icon" onclick="toggleNav()">&#9776;</span>
+
+    <div class="form-container">
+        <h1>Choose Sub Categories</h1>
+        <form method="POST" action="{{ url_for('view_categories') }}">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sub Category</th>
+                        <th>
+                            <label>
+                                Select All
+                                <input type="checkbox" id="select-all" onchange="toggleAllCheckboxes(this)">
+                            </label>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sub_category, count in sub_categories.items() %}
+                    <tr>
+                        <td>{{ sub_category }}   ({{ count }})</td>
+                        <td style="text-align: center;">
+                            <label style="display: flex; justify-content: center; align-items: center;">
+                                <input type="checkbox" name="sub_categories" value="{{ sub_category }}">
+                            </label>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button type="submit">View Selected</button>
+        </form>
+    </div>
+
+    <script>
+    function toggleAllCheckboxes(selectAllCheckbox) {
+        // Get all checkboxes for sub-categories
+        const checkboxes = document.querySelectorAll('input[name="sub_categories"]');
+
+        // Set their checked property based on the Select All checkbox
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = selectAllCheckbox.checked;
+        });
+    }
+
+        function performSearch() {
+            const searchQuery = $('#search-input').val().toLowerCase();
+            $('#subcategory-list li').each(function () {
+                const subCategoryText = $(this).text().toLowerCase();
+                if (subCategoryText.includes(searchQuery)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+
+        document.addEventListener("click", function(event) {
+            var sideNav = document.getElementById("sideNav");
+            var menuIcon = document.querySelector(".menu-icon");
+            
+            if (sideNav.style.width === "250px" && 
+                !sideNav.contains(event.target) && 
+                !menuIcon.contains(event.target)) {
+                sideNav.style.width = "0";
+            }
+        });
+
+        function closeNav() {
+            document.getElementById("sideNav").style.width = "0";
+        }
+        function toggleNav() {
+            var sideNav = document.getElementById("sideNav");
+            if (sideNav.style.width === "250px") {
+                sideNav.style.width = "0";
+            } else {
+                sideNav.style.width = "250px";
+            }
+        }
+    </script>
+</body>
+</html>

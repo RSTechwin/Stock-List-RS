@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Stock</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="sideNav" class="sidenav">
+        {% if session['role'] == 'admin' %}
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('in_out_stock') }}">In/Out Stock</a>
+        <a href="{{ url_for('edit_excel') }}">Edit Excel</a>
+        <a href="{{ url_for('out_stock_summary') }}">Out Stock Summary</a>
+        <a href="{{ url_for('view_categories') }}">View Categories</a>
+        <a href="{{ url_for('restoreDashboard') }}">Restore Dashboard</a>
+        <a href="{{ url_for('deleteStock') }}">Delete Stock</a>
+        <a href="{{ url_for('download_sheet1') }}" download>Download Stock List</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+        {% elif session['role'] == 'staff' %}
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('enterOutStock') }}">Add New Stock</a>
+            <a href="{{ url_for('in_out_stock') }}">In/Out Stock</a>
+            <a href="{{ url_for('download_sheet1') }}">Download Stock List</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    </div>
+    <span class="menu-icon" onclick="toggleNav()">&#9776;</span>
+
+    <div class="container mt-5">
+        <h2>Add New Stock</h2>
+        <button type="button" class="btn btn-sm btn-secondary ml-2" data-toggle="modal" data-target="#addSupplierModal">Add Supplier</button>
+        <form method="POST" action="{{ url_for('enterOutStock') }}">
+            <div class="form-group">
+                <label for="sub_category">Sub Category*</label>
+                <select class="form-control" id="sub_category" name="sub_category" required>
+                    <option value="">Select Sub Category</option>
+                    {% for sub_category in sub_categories %}
+                        <option value="{{ sub_category }}">{{ sub_category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        
+            <div class="form-group">
+                <label for="item_name">Item Name*</label>
+                <input type="text" class="form-control" id="item_name" name="item_name" required>
+            </div>
+        
+            <div class="form-group">
+                <label for="model">Model</label>
+                <input type="text" class="form-control" id="model" name="model">
+            </div>
+        
+            <div class="form-group">
+                <label for="packing_size">Packing/Size</label>
+                <input type="text" class="form-control" id="packing_size" name="packing_size">
+            </div>
+        
+            <div class="form-group">
+                <label for="unit">Unit</label>
+                <select class="form-control" id="unit" name="unit">
+                    <option value=''> </option>
+                    <option value="pc">Pc</option>
+                    <option value="pack">Pack</option>
+                    <option value="meter">Meter</option>
+                    <option value="unit">Unit</option>
+                    <option value="box">Box</option>
+                    <option value="pair">Pair</option>
+                    <option value="roll">Roll</option>
+                </select>
+            </div>
+        
+            <div class="form-group">
+                <label for="quantity">Quantity*</label>
+                <input type="number" class="form-control" id="quantity" name="quantity" required>
+            </div>
+        
+            <div class="form-group">
+                <label for="supplier">Supplier</label>
+                <select class="form-control" id="supplier" name="supplier">
+                    <option value=""></option>
+                    <option value="China">China</option>
+                    <option value="Local">Local</option>
+                </select>     
+            </div>    
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>       
+</div>        
+<!-- Add Supplier Modal -->
+<div class="modal fade" id="addSupplierModal" tabindex="-1" role="dialog" aria-labelledby="addSupplierModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSupplierModalLabel">Manage Suppliers</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="supplierForm">
+                    <div class="form-group">
+                        <label for="supplierName">Supplier Name</label>
+                        <input type="text" class="form-control" id="supplierName" placeholder="Enter supplier name">
+                    </div>
+                    <ul class="list-group" id="supplierList">
+                    </ul>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="saveSupplier">Save</button>
+                <button type="button" class="btn btn-danger" id="deleteSupplier">Delete</button>
+    
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script>
+        document.addEventListener("click", function(event) {
+            var sideNav = document.getElementById("sideNav");
+            var menuIcon = document.querySelector(".menu-icon");
+
+            if (sideNav.style.width === "250px" && 
+                !sideNav.contains(event.target) && 
+                !menuIcon.contains(event.target)) {
+                sideNav.style.width = "0";
+            }
+        });
+
+        function closeNav() {
+            document.getElementById("sideNav").style.width = "0";
+        }
+        function toggleNav() {
+            var sideNav = document.getElementById("sideNav");
+            if (sideNav.style.width === "250px") {
+                sideNav.style.width = "0";
+            } else {
+                sideNav.style.width = "250px";
+            }
+        }
+
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            if (message) {
+                alert(decodeURIComponent(message));
+            }
+        }
+
+        const supplierList = document.getElementById('supplierList');
+        const supplierNameInput = document.getElementById('supplierName');
+        const supplierDropdown = document.getElementById('supplier');
+
+        async function loadSuppliers() {
+            const response = await fetch('/suppliers');
+            const suppliers = await response.json();
+            supplierList.innerHTML = '';
+            supplierDropdown.innerHTML = '<option value=""></option>';
+
+            suppliers.forEach(supplier => {
+                const li = document.createElement('li');
+                li.textContent = supplier;
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML += '<button class="btn btn-sm btn-danger ml-2 delete-supplier">Delete</button>';
+                supplierList.appendChild(li);
+
+                const option = document.createElement('option');
+                option.value = supplier;
+                option.textContent = supplier;
+                supplierDropdown.appendChild(option);
+            });
+        }
+
+        document.getElementById('saveSupplier').addEventListener('click', async () => {
+            const supplierName = supplierNameInput.value.trim();
+            if (supplierName) {
+                const response = await fetch('/suppliers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ supplier_name: supplierName })
+                });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    loadSuppliers();
+                    supplierNameInput.value = '';
+                } else {
+                    alert(result.message);
+                }
+            }
+        });
+
+        supplierList.addEventListener('click', async (event) => {
+        if (event.target.classList.contains('delete-supplier')) {
+            const supplierName = event.target.parentElement.firstChild.textContent.trim();
+
+            try {
+                const response = await fetch('/suppliers', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ supplier_name: supplierName })
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    loadSuppliers();
+                    alert(result.message);
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                alert('An error occurred while deleting the supplier.');
+            }
+        }
+    });
+
+        document.addEventListener('DOMContentLoaded', loadSuppliers);
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.0/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>

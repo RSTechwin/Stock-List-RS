@@ -1,0 +1,313 @@
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(
+        15deg,
+        rgba(198, 213, 255, 0.9),
+        rgba(253, 216, 202, 0.9),
+        rgba(166, 204, 255, 0.8)
+    );
+    color: #333;
+    margin: 0;
+    padding: 20px; /* Add padding for space around the content */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+
+/* Main container */
+.container {
+    max-width: 1200px;
+    margin: 0 auto; /* Center the container */
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.container button{
+    margin-top: 10px;
+}
+button[data-toggle="modal"]{
+    font-size: 14px; /* Keep the modal trigger buttons consistent */
+    padding: 8px;
+    border-radius: 8px;
+    background-color: #007bff; /* Bright blue color for modal buttons */
+    color: white;
+    border: none; /* Remove border */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Slight shadow */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+
+}
+button[data-toggle="modal"]:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Slightly more pronounced shadow on hover */
+}
+
+/* Side navigation bar styles */
+.sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #ffffff;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 80px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.sidenav a {
+    padding: 12px 30px;
+    text-decoration: none;
+    font-size: 18px;
+    color: #111;
+    display: block;
+    transition: color 0.3s ease, background 0.3s ease;
+}
+
+.sidenav a:hover {
+    color: #ffffff;
+    background-color: rgba(70, 91, 211, 0.9);
+    border-radius: 5px;
+}
+
+.sidenav .closebtn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 30px;
+    color: black;
+    cursor: pointer;
+}
+
+/* Burger menu icon */
+.menu-icon {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 30px;
+    color: black;
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.3s ease;
+}
+
+.menu-icon:hover {
+    transform: scale(1.1);
+}
+
+/* Form styling */
+.form-container {
+    margin: 20px auto;
+    max-width: 600px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+input, select, textarea, button {
+    padding: 10px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+
+/* Modal styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    border-radius: 8px;
+    width: 40%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.modal-header h2 {
+    margin: 0;
+}
+
+.modal-header .close {
+    font-size: 28px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.modal-header .close:hover,
+.modal-header .close:focus {
+    color: black;
+    text-decoration: none;
+}
+
+.modal-body {
+    margin: 10px 0;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.modal-footer button {
+    margin-left: 10px;
+}
+
+/* Table styling */
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto; /* Center the container */
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    margin-top: 0; /* Remove extra margin */
+}
+
+
+.table-container {
+    margin: 20px auto;
+    max-width: 800px;
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    background: #ffffff;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table th, table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table th {
+    background-color: #6c5b7b;
+    color: white;
+}
+
+table tr:nth-child(even) {
+    background-color: #f7e4f5;
+}
+
+table tr:hover {
+    background-color: #fce4ec;
+    cursor: pointer;
+}
+
+/* Dropdown Styling */
+.dropdown {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: #fff;
+    position: absolute;
+    width: 300px;
+    z-index: 1000;
+}
+
+.dropdown li {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.dropdown li:hover {
+    background-color: #f1f1f1;
+}
+
+/* Active tabs */
+.tab-container {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.tab-container button {
+    flex: 1;
+    margin: 0 5px;
+    padding: 10px 15px;
+    font-size: 16px;
+    font-weight: bold;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    cursor: pointer;
+}
+
+.tab-container button.active {
+    background-color: #6c5b7b;
+    color: #fff;
+}
+
+.tab-container button:hover {
+    background-color: #ddd;
+}
+
+.delete-btn {
+    font-size: 12px; /* Smaller font size */
+    padding: 2px 8px; /* Adjust padding for a smaller size */
+    line-height: 1; /* Reduce line-height */
+    border-radius: 3px; /* Add slight rounding */
+    width: auto; /* Ensure the button width is minimal */
+    text-align: center; /* Center align text */
+}

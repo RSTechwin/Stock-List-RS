@@ -1,0 +1,484 @@
+/* General styles */
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(
+        15deg,
+        rgba(198, 213, 255, 0.9),
+        rgba(253, 216, 202, 0.9),
+        rgba(166, 204, 255, 0.8)
+    );
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Login page styles */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.login-card {
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    padding: 40px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    animation: fadeIn 1.2s ease;
+}
+
+.login-title {
+    font-size: 2.2rem;
+    color: rgba(70, 91, 211, 0.9);
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-group label {
+    font-size: 1rem;
+    color: rgba(70, 91, 211, 0.8);
+    display: block;
+    margin-bottom: 5px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid rgba(70, 91, 211, 0.5);
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input-group input:focus {
+    border-color: rgba(255, 165, 0, 0.8);
+    box-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+}
+
+.login-button {
+    background: linear-gradient(90deg, rgba(131, 149, 255, 0.9), rgba(152, 205, 255, 0.9));
+    color: white;
+    font-size: 1.1rem;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    width: 100%;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.login-button:hover {
+    transform: scale(1.05);
+    background: linear-gradient(90deg,  rgb(97, 177, 241),rgb(147, 164, 255));
+}
+
+.error {
+    color: #e63946;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+/* Side navigation bar styles */
+.sidenav {
+    height: 100%; /* Full height */
+    width: 0; /* Initially hidden */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    top: 0;
+    left: 0;
+    background-color: #ffffff; /* White background */
+    overflow-x: hidden; /* Disable horizontal scroll */
+    transition: 0.5s; /* Smooth slide-in/out */
+    padding-top: 80px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for contrast */
+}
+
+.sidenav a {
+    padding: 12px 30px;
+    text-decoration: none;
+    font-size: 18px;
+    color: #111; /* Black text */
+    display: block;
+    transition: color 0.3s ease, background 0.3s ease;
+}
+
+.sidenav a:hover {
+    color: #ffffff; /* White text on hover */
+    background-color: rgba(70, 91, 211, 0.9); /* Blue background */
+    border-radius: 5px;
+}
+
+.sidenav .closebtn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 30px;
+    color: black; /* Black close button */
+    cursor: pointer;
+}
+
+/* Burger menu icon */
+.menu-icon {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 30px;
+    color: black; /* Black burger menu icon */
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.3s ease;
+
+}
+
+.menu-icon:hover {
+    transform: scale(1.1);
+}
+
+/* Main content styles */
+.main {
+    padding: 20px;
+    transition: margin-left 0.5s ease;
+    font-size: 20px;
+}
+/*Delete Stock Css*/
+/* Form container */
+.container {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 500px;
+}
+
+/* Form title */
+h2 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: #4a4a4a;
+}
+
+/* Form elements */
+label {
+    font-size: 1rem;
+    margin-bottom: 8px;
+    color: #555;
+    display: block;
+}
+
+select {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+select:focus {
+    border-color: #4f80f0;
+    box-shadow: 0 0 5px rgba(79, 128, 240, 0.6);
+}
+
+/* Confirmation button */
+button[type="button"] {
+    background: linear-gradient(90deg, rgba(70, 130, 180, 0.8), rgba(100, 149, 237, 0.9));
+    color: white;
+    font-size: 1.2rem;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button[type="button"]:hover {
+    transform: scale(1.05);
+    background: linear-gradient(90deg, rgba(100, 149, 237, 0.8), rgba(70, 130, 180, 0.9));
+}
+
+
+h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+h2 {
+    font-size: 1.8rem;
+    color: #555;
+    margin-bottom: 20px;
+    font-weight: normal;
+    text-transform: capitalize;
+}
+
+.table-container {
+    width: 90%;
+    margin: 20px auto;
+    overflow-x: auto;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    background: #fff;
+    padding: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    text-align: center;
+}
+
+table thead {
+    background-color: #6c5b7b;
+    color: white;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+table thead th {
+    padding: 15px;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+}
+
+table tbody td {
+    padding: 12px 15px;
+    color: #333;
+    font-size: 14px;
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #f7e4f5;
+}
+
+table tbody tr:nth-child(odd) {
+    background-color: #fff;
+}
+
+table tbody tr:hover {
+    background-color: #fce4ec;
+    cursor: pointer;
+}
+
+.footer {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #777;
+}
+.scrollable-container {
+    max-height: 400px; /* Adjust the height as needed */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    margin-top: 20px;
+    border: 1px solid #ddd; /* Optional: Adds a border around the scrollable area */
+    padding: 5px;
+}
+
+
+ /* Main container styles */
+ .container {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+    width: 85%;
+    max-width: 900px;
+    margin: 30px auto;
+}
+
+/* Table styling */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.table th {
+    background-color: rgba(70, 91, 211, 0.9);
+    color: white;
+}
+
+.table td {
+    background-color: #f9f9f9;
+}
+
+.table-striped tr:nth-child(odd) {
+    background-color: #ffffff; /* White for odd rows */
+}
+
+.table-striped tr:nth-child(even) {
+    background-color: #f2f2f2; /* Light gray for even rows */
+}
+
+/* Form styling */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid rgba(70, 91, 211, 0.5);
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: rgba(255, 165, 0, 0.8);
+    box-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, rgba(131, 149, 255, 0.9), rgba(152, 205, 255, 0.9));
+    color: white;
+    font-size: 1.1rem;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-primary:hover {
+    transform: scale(1.05);
+    background: linear-gradient(90deg, rgb(97, 177, 241), rgb(147, 164, 255));
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    gap: 5px;
+}
+
+.pagination a {
+    text-decoration: none;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    color: #007bff;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-size: 14px;
+}
+
+.pagination a.active {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+    pointer-events: none;
+}
+
+.pagination a:hover {
+    background-color: #f1f1f1;
+    color: #0056b3;
+}
+
+.table-container {
+    height: 600px; /* Set the desired maximum height */
+    max-width: auto;
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: auto; /* Enable horizontal scrolling if needed */
+}
+
+.table-container::-webkit-scrollbar {
+    width: 8px; /* Scrollbar width */
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: rgba(70, 91, 211, 0.9); /* Scrollbar thumb color */
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(70, 91, 211, 1); /* Thumb color on hover */
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Scrollbar track color */
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments */
+@media screen and (max-height: 450px) {
+    .sidenav {
+        padding-top: 15px;
+    }
+
+    .sidenav a {
+        font-size: 1rem;
+    }
+}
+
+#addSupplierButton {
+    font-size: 14px;
+    padding: 2px 8px;
+}
+
+#newSupplier {
+    font-size: 14px;
+    height: 30px;
+    padding: 5px;
+}
+
+#saveSupplierButton {
+    font-size: 14px;
+    padding: 2px 10px;
+}
+#addSupplierButton, #saveSupplierButton, #closeSupplierButton {
+    font-size: 14px;
+    padding: 2px 10px;
+}
+
+#closeSupplierButton {
+    margin-left: 8px;
+}
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}

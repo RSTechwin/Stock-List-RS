@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In/Out Stock</title>
+    <link rel="stylesheet" href="/static/inOut.css">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="sideNav" class="sidenav">
+        {% if session['role'] == 'admin' %}
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('enterOutStock') }}">Add New Stock</a>
+        <a href="{{ url_for('edit_excel') }}">Edit Excel</a>
+        <a href="{{ url_for('out_stock_summary') }}">Out Stock Summary</a>
+        <a href="{{ url_for('view_categories') }}">View Categories</a>
+        <a href="{{ url_for('restoreDashboard') }}">Restore Dashboard</a>
+        <a href="{{ url_for('deleteStock') }}">Delete Stock</a>
+        <a href="{{ url_for('download_sheet1') }}" download>Download Stock List</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+        {% elif session['role'] == 'staff' %}
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('enterOutStock') }}">Add New Stock</a>
+            <a href="{{ url_for('in_out_stock') }}">In/Out Stock</a>
+            <a href="{{ url_for('download_sheet1') }}">Download Stock List</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    </div>
+    <span class="menu-icon" onclick="toggleNav()">&#9776;</span>
+
+            <!-- Add this below your navigation bar or before the main content -->
+        <div class="mt-3">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+
+    <div class="container mt-5">
+        <h2>In/Out Stock</h2>
+        
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addTechnicalModal">Manage Technical Names</button>
+        <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#addSiteModal">Manage Site Names</button>
+
+        <form method="POST" action="{{ url_for('in_out_stock') }}">
+            <div class="form-group position-relative">
+                <label for="itemSearch">Search Items</label>
+                <input type="text" class="form-control" id="itemSearch" name="item_name" placeholder="Type to search items" autocomplete="off">
+                <ul class="list-group" id="suggestions" style="position: absolute; z-index: 1000; display: none; width: 100%; max-height: 200px; overflow-y: auto;">
+                    <!-- Suggestions will be dynamically added here -->
+                </ul>
+            </div>
+            
+            <div class="form-group">
+                <label for="quantity">Quantity*</label>
+                <input type="number" class="form-control" id="quantity" name="quantity" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="action">Action*</label>
+                <select name="action" class="form-control" required>
+                    <option value="">Select Action</option>
+                    <option value="In">In</option>
+                    <option value="Out">Out</option>
+                </select>
+            </div>
+        
+            <div class="form-group">
+                <label for="reported_by">Who Taken*</label>
+                <select name="who_taken" class="form-control">
+                    <option value="">Select Taken By</option>
+                    {% for technician in technicians %}
+                        <option value="{{ technician }}">{{ technician }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        
+            <div class="form-group">
+                <label for="site_name">Site Name*</label>
+                <select name="site_name" class="form-control">
+                    <option value="">Select Site</option>
+                    {% for site in sites %}
+                        <option value="{{ site }}">{{ site }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        
+            <div class="form-group">
+                <label for="remark">Remark</label>
+                <textarea class="form-control" id="remark" name="remark"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="date">Date*</label>
+                <input type="date" class="form-control" id="date" name="date">
+            </div>
+        
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>       
+    </div>
+    <!-- Add Technical Modal -->
+    <div class="modal fade" id="addTechnicalModal" tabindex="-1" role="dialog" aria-labelledby="addTechnicalModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title" id="addTechnicalModalLabel">Manage Technical Names</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body">
+                  <form id="addTechnicalForm">
+                      <div class="form-group">
+                          <label for="newTechnical">Technical Name</label>
+                          <input type="text" class="form-control" id="newTechnical" placeholder="Enter technical name">
+                      </div>
+                  </form>
+                  <ul class="list-group mt-3" id="technicalList">
+                      <!-- Example for dynamically loaded items -->
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                          <span>Example Technical Name</span>
+                          <button class="btn btn-danger btn-sm delete-btn" data-name="Example Technical Name">Delete</button>
+                      </li>
+                  </ul>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-primary" id="saveTechnical">Save</button>
+              </div>
+          </div>
+      </div>
+  </div>
+  
+  <!-- Add Site Modal -->
+  <div class="modal fade" id="addSiteModal" tabindex="-1" role="dialog" aria-labelledby="addSiteModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title" id="addSiteModalLabel">Manage Site Names</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body">
+                  <form id="addSiteForm">
+                      <div class="form-group">
+                          <label for="newSite">Site Name</label>
+                          <input type="text" class="form-control" id="newSite" placeholder="Enter site name">
+                      </div>
+                  </form>
+                  <ul class="list-group mt-3" id="siteList">
+                      <!-- Example for dynamically loaded items -->
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                          <span>Example Site Name</span>
+                          <button class="btn btn-danger btn-sm delete-btn" data-name="Example Site Name">Delete</button>
+                      </li>
+                  </ul>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-primary" id="saveSite">Save</button>
+              </div>
+          </div>
+      </div>
+  </div>
+  
+</div>
+
+    <!-- JavaScript for Autocomplete -->
+    <script>
+        document.getElementById('itemSearch').addEventListener('input', async function () {
+            const query = this.value.trim();
+            const suggestionsBox = document.getElementById('suggestions');
+            suggestionsBox.innerHTML = ''; // Clear previous suggestions
+
+            if (query === '') {
+                suggestionsBox.style.display = 'none'; // Hide suggestions box if input is empty
+                return;
+            }
+
+            try {
+                const response = await fetch(`/get_suggestions?query=${encodeURIComponent(query)}`);
+                const items = await response.json();
+
+                if (items.length > 0) {
+                    items.forEach(item => {
+                        const suggestion = document.createElement('li');
+                        suggestion.className = 'list-group-item';
+                        suggestion.textContent = item;
+                        suggestion.style.cursor = 'pointer';
+
+                        suggestion.addEventListener('click', () => {
+                            document.getElementById('itemSearch').value = item;
+                            suggestionsBox.style.display = 'none';
+                        });
+
+                        suggestionsBox.appendChild(suggestion);
+                    });
+
+                    suggestionsBox.style.display = 'block';
+                } else {
+                    suggestionsBox.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error fetching suggestions:', error);
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            const suggestionsBox = document.getElementById('suggestions');
+            if (!document.getElementById('itemSearch').contains(event.target)) {
+                suggestionsBox.style.display = 'none';
+            }
+        });
+
+        function toggleNav() {
+            const sideNav = document.getElementById("sideNav");
+            sideNav.style.width = sideNav.style.width === "250px" ? "0" : "250px";
+        }
+
+        function closeNav() {
+            document.getElementById("sideNav").style.width = "0";
+        }
+    
+    const technicalDropdown = document.querySelector('select[name="who_taken"]');
+    const siteDropdown = document.querySelector('select[name="site_name"]');
+    const technicalList = document.getElementById('technicalList');
+    const siteList = document.getElementById('siteList');
+
+    async function loadTechnicalNames() {
+        const response = await fetch('/addTechnical.json');
+        const data = await response.json();
+        technicalList.innerHTML = '';
+        technicalDropdown.innerHTML = '<option value="">Select Taken By</option>'; // Reset dropdown
+
+        data.forEach(name => {
+            // Update modal list
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.innerHTML = `<span>${name}</span><button class="btn btn-danger btn-sm delete-btn" data-name="${name}">Delete</button>`;
+            technicalList.appendChild(li);
+
+            // Update dropdown
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            technicalDropdown.appendChild(option);
+        });
+    }
+
+    async function loadSiteNames() {
+        const response = await fetch('/addSite.json');
+        const data = await response.json();
+        siteList.innerHTML = '';
+        siteDropdown.innerHTML = '<option value="">Select Site</option>'; // Reset dropdown
+
+        data.forEach(name => {
+            // Update modal list
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.innerHTML = `<span>${name}</span><button class="btn btn-danger btn-sm delete-btn" data-name="${name}">Delete</button>`;
+            siteList.appendChild(li);
+
+            // Update dropdown
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            siteDropdown.appendChild(option);
+        });
+    }
+
+    document.getElementById('saveTechnical').addEventListener('click', async () => {
+        const name = document.getElementById('newTechnical').value.trim();
+        if (name) {
+            const response = await fetch('/addTechnical.json', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name }),
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                loadTechnicalNames();
+                document.getElementById('newTechnical').value = '';
+            } else {
+                alert(result.message);
+            }
+        }
+    });
+
+    document.getElementById('saveSite').addEventListener('click', async () => {
+        const name = document.getElementById('newSite').value.trim();
+        if (name) {
+            const response = await fetch('/addSite.json', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name }),
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                loadSiteNames();
+                document.getElementById('newSite').value = '';
+            } else {
+                alert(result.message);
+            }
+        }
+    });
+
+    technicalList.addEventListener('click', async (event) => {
+        if (event.target.classList.contains('delete-btn')) {
+            const name = event.target.dataset.name;
+            await fetch('/addTechnical.json', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name }),
+            });
+            loadTechnicalNames();
+        }
+    });
+
+    siteList.addEventListener('click', async (event) => {
+        if (event.target.classList.contains('delete-btn')) {
+            const name = event.target.dataset.name;
+            await fetch('/addSite.json', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name }),
+            });
+            loadSiteNames();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadTechnicalNames(); // Load on page load
+        loadSiteNames(); // Load on page load
+    });
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.0/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

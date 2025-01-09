@@ -1,0 +1,275 @@
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(
+        15deg,
+        rgba(198, 213, 255, 0.9),
+        rgba(253, 216, 202, 0.9),
+        rgba(166, 204, 255, 0.8)
+    );
+    background-repeat: no-repeat; /* Prevent the background from repeating */
+    background-size: cover; /* Ensure the background covers the entire viewport */
+    background-attachment: fixed; /* Make sure the background stays fixed while scrolling */
+    color: #333;
+    margin: 0;
+    padding: 20px; /* Add padding for space around the content */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%; /* Set height to 100% of the viewport height */
+}
+
+.sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #ffffff;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 80px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.sidenav a {
+    padding: 12px 30px;
+    text-decoration: none;
+    font-size: 18px;
+    color: #111;
+    display: block;
+    transition: color 0.3s ease, background 0.3s ease;
+}
+
+.sidenav a:hover {
+    color: #ffffff;
+    background-color: rgba(70, 91, 211, 0.9);
+    border-radius: 5px;
+}
+
+.sidenav .closebtn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 30px;
+    color: black;
+    cursor: pointer;
+}
+
+.menu-icon {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 30px;
+    color: black;
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.3s ease;
+}
+
+.menu-icon:hover {
+    transform: scale(1.1);
+}
+
+.table-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-top: 60px;
+    margin-bottom: 60px;
+    width: 85%;
+    overflow-x: auto;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.search-bar {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.search-bar input {
+    padding: 8px;
+    width: 300px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+.search-bar select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+.search-bar button {
+    padding: 8px 12px;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+th {
+    background-color: #007bff;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.low-stock {
+    color: red;
+    font-weight: bold;
+}
+
+.ok-stock {
+    color: green;
+    font-weight: bold;
+}
+
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination a {
+    margin: 0 5px;
+    text-decoration: none;
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    color: #007bff;
+}
+
+.pagination a:hover {
+    background-color: #f1f1f1;
+}
+
+.pagination .disabled {
+    color: #ccc;
+    pointer-events: none;
+}
+
+.pagination a.active {
+    background-color: #007bff;
+    color: white;
+    pointer-events: none;
+    font-weight: bold;
+}
+.back-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    text-decoration: none;
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-size: 14px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease;
+}
+.back-button:hover {
+    background-color: #0056b3;
+}
+
+button[type="submit"] {
+    background-color: blue;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+button[type="submit"]:hover {
+    background-color: darkblue;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.close {
+    position: absolute;
+    top: 10px; /* Position it 10px from the top of the modal content */
+    right: 10px; /* Position it 10px from the right of the modal content */
+    color: #aaa; /* Light gray color */
+    font-size: 28px; /* Size of the close icon */
+    font-weight: bold; /* Bold text */
+    cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+.close:hover,
+.close:focus {
+    color: black; /* Change color to black on hover or focus */
+    text-decoration: none; /* Remove any underline */
+}
+
+.modal-content {
+    position: relative; /* Ensure the close button is positioned relative to this container */
+    background-color: white;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 50%; /* Adjust width as needed */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.no-image {
+    color: blue;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.no-image:hover {
+    color: darkblue;
+}
+.navigation-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+}
+
+.back-button, .download-button {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.back-button:hover, .download-button:hover {
+    background-color: #0056b3;
+}

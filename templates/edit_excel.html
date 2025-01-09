@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Excel</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<style>
+        /* Add some default styles for alerts */
+        .alert {
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .alert-error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+</style>
+<body>
+    <div id="sideNav" class="sidenav">
+        {% if session['role'] == 'admin' %}
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('enterOutStock') }}">Add New Stock</a>
+        <a href="{{ url_for('in_out_stock') }}">In/Out Stock</a>
+        <a href="{{ url_for('out_stock_summary') }}">Out Stock Summary</a>
+        <a href="{{ url_for('view_categories') }}">View Categories</a>
+        <a href="{{ url_for('restoreDashboard') }}">Restore Dashboard</a>
+        <a href="{{ url_for('deleteStock') }}">Delete Stock</a>
+        <a href="{{ url_for('download_sheet1') }}" download>Download Stock List</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+        {% elif session['role'] == 'staff' %}
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('enterOutStock') }}">Add New Stock</a>
+            <a href="{{ url_for('in_out_stock') }}">In/Out Stock</a>
+            <a href="{{ url_for('download_sheet1') }}">Download Stock List</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    </div>
+    <span class="menu-icon" onclick="toggleNav()">&#9776;</span>
+
+    <div class="container">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div id="flash-messages">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                  {{ message }}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <h1>Edit Excel File</h1>
+        <form id="editForm" method="POST" action="/edit_excel">
+            <!-- Search Bar for Item Name -->
+            <div class="form-group">
+                <label for="search">Search Item Name:</label>
+                <input type="text" id="search" name="item_name" class="form-control" placeholder="Search Item Name" required>
+                <ul id="suggestion-box" class="suggestion-box"></ul>
+            </div>
+
+            <!-- Input for Min. Qty -->
+            <div class="form-group">
+                <label for="min_qty">Min. Qty:</label>
+                <input type="number" id="min_qty" name="min_qty" class="form-control" placeholder="Enter Minimum Quantity" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Update Excel</button>
+        </form>
+    </div>
+
+    <script>
+        // Automatically close flash messages after 5 seconds
+        setTimeout(function() {
+            const flashMessages = document.getElementById("flash-messages");
+            if (flashMessages) {
+                flashMessages.style.transition = "opacity 0.5s ease-out";
+                flashMessages.style.opacity = "0";
+
+                setTimeout(function() {
+                    flashMessages.remove();
+                }, 500); // Wait for transition to complete before removing
+            }
+        }, 5000); // 5 seconds delay
+
+        function closeNav() {
+            document.getElementById("sideNav").style.width = "0";
+        }
+
+        function toggleNav() {
+            var sideNav = document.getElementById("sideNav");
+            sideNav.style.width = (sideNav.style.width === "250px") ? "0" : "250px";
+        }
+
+        $(document).ready(function () {
+            // Search bar suggestions
+            $('#search').on('input', function () {
+                const query = $(this).val();
+                if (query.length > 0) {
+                    $.get('/get_suggestions', { query: query }, function (data) {
+                        $('#suggestion-box').empty();
+                        data.forEach(item => {
+                            $('#suggestion-box').append(`<li class="suggestion-item">${item}</li>`);
+                        });
+                    });
+                } else {
+                    $('#suggestion-box').empty();
+                }
+            });
+
+            // Click on suggestion to populate the search bar
+            $('#suggestion-box').on('click', '.suggestion-item', function () {
+                $('#search').val($(this).text());
+                $('#suggestion-box').empty();
+            });
+        });
+    </script>
+</body>
+</html>

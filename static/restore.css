@@ -1,0 +1,179 @@
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(
+        15deg,
+        rgba(198, 213, 255, 0.9),
+        rgba(253, 216, 202, 0.9),
+        rgba(166, 204, 255, 0.8)
+    );
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden; /* Prevent body scrolling */
+}
+
+/* Side navigation bar styles */
+.sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #ffffff;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 80px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.sidenav a {
+    padding: 12px 30px;
+    text-decoration: none;
+    font-size: 18px;
+    color: #111;
+    display: block;
+    transition: color 0.3s ease, background 0.3s ease;
+}
+
+.sidenav a:hover {
+    color: #ffffff;
+    background-color: rgba(70, 91, 211, 0.9);
+    border-radius: 5px;
+}
+
+.sidenav .closebtn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 30px;
+    color: black;
+    cursor: pointer;
+}
+
+/* Burger menu icon */
+.menu-icon {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 30px;
+    color: black;
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.3s ease;
+}
+
+.menu-icon:hover {
+    transform: scale(1.1);
+}
+
+.container {
+    width: 90%;
+    height: 80%; /* Adjusted height to give enough space for the table */
+    margin: 20px auto;
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden; /* Prevent overflow outside the container */
+}
+
+.low-stock {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Table wrapper for scroll */
+.table-wrapper {
+    flex-grow: 1; /* Ensures the table wrapper takes available space */
+    overflow-y: auto;
+    border: 1px solid #ddd; /* Optional border around the scrollable area */
+    margin-bottom: 10px; /* Space below the table */
+}
+
+/* Table styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    color: black;
+}
+
+table th, table td {
+    text-align: left;
+    padding: 12px;
+    border: 1px solid #ddd;
+    box-sizing: border-box; /* Ensures consistent sizing */
+    color: black;
+}
+
+table th {
+    background-color: #007bff;
+    color: white;
+}
+
+table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* Action column styling */
+table td:last-child {
+    background-color: red;
+    color: white;
+    text-align: center; /* Center align for the action buttons */
+}
+
+/* Update button styles */
+.update-button {
+    background-color: white;
+    color: red;
+    border: 1px solid red;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.update-button:hover {
+    background-color: darkred;
+    color: white;
+}
+
+/* Pagination styles */
+.pagination {
+    text-align: center;
+    padding: 10px 0; /* Space above and below the pagination */
+}
+
+.pagination a, .pagination button {
+    background-color: white;
+    color: #007bff;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 15px;
+    margin: 0 5px;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 14px;
+    transition: all 0.3s ease; /* Smooth transition for hover effect */
+}
+
+.pagination a:hover, .pagination button:hover {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.pagination a.active, .pagination button.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+    font-weight: bold;
+    cursor: default; /* Prevent pointer on active page */
+}

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Items in {{ sub_category_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='viewCategory.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div id="sideNav" class="sidenav">
+        {% if session['role'] == 'admin' %}
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('enterOutStock') }}">Add New Stock</a>
+        <a href="{{ url_for('in_out_stock') }}">In/Out Stock</a>
+        <a href="{{ url_for('edit_excel') }}">Edit Excel</a>
+        <a href="{{ url_for('out_stock_summary') }}">Out Stock Summary</a>
+        <a href="{{ url_for('view_categories') }}">View Categories</a>
+        <a href="{{ url_for('restoreDashboard') }}">Restore Dashboard</a>
+        <a href="{{ url_for('deleteStock') }}">Delete Stock</a>
+        <a href="{{ url_for('download_sheet1') }}" download>Download Stock List</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+        {% elif session['role'] == 'staff' %}
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('enterOutStock') }}">Add New Stock</a>
+            <a href="{{ url_for('in_out_stock') }}">In/Out Stock</a>
+            <a href="{{ url_for('download_sheet1') }}">Download Stock List</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    </div>
+    <span class="menu-icon" onclick="toggleNav()">&#9776;</span>
+
+    <div class="table-container">
+        <h1>Items in {{ sub_category_name }}</h1>
+
+        <div class="search-bar">
+            <form method="GET" action="{{ url_for('view_category_items') }}">
+                <input type="hidden" name="sub_category_names" value="{{ request.args.get('sub_category_names', '') }}">
+                <input 
+                    type="text" 
+                    name="search" 
+                    id="search-input" 
+                    placeholder="Search by Item Name..." 
+                    value="{{ request.args.get('search', '') }}" 
+                >
+                <select name="supplier" id="supplier-select">
+                    <option value="">All Suppliers</option>
+                    {% for supplier in unique_suppliers %}
+                        <option value="{{ supplier }}" {% if request.args.get('supplier') == supplier %}selected{% endif %}>
+                            {{ supplier }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <select name="stock_status" id="stock-status-select">
+                    <option value="">Filter by Stock Status</option>
+                    <option value="Stock Low" {% if request.args.get('stock_status') == 'Stock Low' %}selected{% endif %}>Stock Low</option>
+                    <option value="Stock OK" {% if request.args.get('stock_status') == 'Stock OK' %}selected{% endif %}>Stock OK</option>
+                </select>
+                <button type="submit">Filters</button>
+                <a href="{{ url_for('download_categories_excel', sub_category_names=request.args.get('sub_category_names', ''), search=request.args.get('search', ''), supplier=request.args.get('supplier', ''), stock_status=request.args.get('stock_status', '')) }}" class="download-button">
+                    Download Filtered Categories
+                </a>
+                
+                
+            </form>
+        </div>
+     
+        <table>
+            <thead>
+                <tr>
+                    <th>Sub-Category</th> <!-- New column -->
+                    <th>Item Name</th>
+                    <th>Image</th>
+                    <th>Supplier</th>
+                    <th>Qty</th>
+                    <th>Unit</th>
+                    <th>Price</th>
+                    <th>Average Price</th>
+                    <th>Stock Status</th>
+                    <th>Update Stock</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in table_data %}
+                <tr>
+                    <td>{{ row['Sub Category'] }}</td> <!-- Render sub-category -->
+                    <td>{{ row['Item Name'] }}</td>
+                    <td>
+                        {% if row['Picture'] %}
+                            <img 
+                                src="{{ row['Picture'] }}" 
+                                alt="{{ row['Item Name'] }}" 
+                                style="width: 52px; height: auto;" 
+                                data-item="{{ row['Item Name'] }}" 
+                                onclick="openModal('{{ row['Item Name'] }}', this.src)"
+                            >
+                        {% else %}
+                            <span 
+                                class="no-image" 
+                                style="color: blue; cursor: pointer; text-decoration: underline;" 
+                                data-item="{{ row['Item Name'] }}" 
+                                onclick="openModal('{{ row['Item Name'] }}', null)"
+                            >
+                                No Image
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>{{ row['Supplier'] }}</td>
+                    <td>{{ row['Stock Balance'] }}</td>
+                    <td>{{ row['Unit'] }}</td>
+                    <td>{{ row['Local Cost(RM)'] }}</td>
+                    <td>{{ row['Average Purchase Price'] }}</td>
+                    <td class="{% if row['Stock Balance'] > 10 %}ok-stock{% else %}low-stock{% endif %}">
+                        {% if row['Stock Balance'] > 10 %}
+                            Stock OK
+                        {% else %}
+                            Stock Low
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ url_for('view_category_items') }}">
+                            <input type="hidden" name="sub_category_names" value="{{ request.args.get('sub_category_names', '') }}">
+                            <input type="hidden" name="item_name" value="{{ row['Item Name'] }}">
+                            <input type="number" name="stock_update" placeholder="Add/Deduct">
+                            <button type="submit">Update</button>
+                        </form>                                                                                          
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        
+        <div class="pagination">
+            <a href="?page={{ page - 1 if page > 1 else 1 }}&sub_category_names={{ request.args.get('sub_category_names', '') }}&search={{ request.args.get('search', '') }}&supplier={{ request.args.get('supplier', '') }}&stock_status={{ request.args.get('stock_status', '') }}" class="{{ 'disabled' if page == 1 else '' }}">Prev</a>
+            
+            {% for num in range(1, total_pages + 1) %}
+                <a href="?page={{ num }}&sub_category_names={{ request.args.get('sub_category_names', '') }}&search={{ request.args.get('search', '') }}&supplier={{ request.args.get('supplier', '') }}&stock_status={{ request.args.get('stock_status', '') }}" 
+                   class="{{ 'active' if num == page else '' }}">
+                   {{ num }}
+                </a>
+            {% endfor %}
+            
+            <a href="?page={{ page + 1 if page < total_pages else total_pages }}&sub_category_names={{ request.args.get('sub_category_names', '') }}&search={{ request.args.get('search', '') }}&supplier={{ request.args.get('supplier', '') }}&stock_status={{ request.args.get('stock_status', '') }}" class="{{ 'disabled' if page == total_pages else '' }}">Next</a>
+        </div>
+    </div>
+
+    <div class="navigation-buttons">
+        <a href="{{ url_for('view_categories') }}" class="back-button">Back to Categories</a>
+    </div>
+    
+    <div id="imageModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Upload New Image</h2>
+            <form id="uploadForm">
+                <input type="hidden" id="itemName" name="item_name">
+                <input type="file" name="file" id="fileInput" accept="image/*" required>
+                <button type="submit">Upload</button>
+            </form>
+            <p id="uploadStatus"></p>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript for toggling side navigation
+        function closeNav() {
+            document.getElementById("sideNav").style.width = "0";
+        }
+        function toggleNav() {
+            var sideNav = document.getElementById("sideNav");
+            sideNav.style.width = sideNav.style.width === "250px" ? "0" : "250px";
+        }
+
+        // Modal functionality
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+        function openModal(itemName, currentImage) {
+            const modal = document.getElementById('imageModal');
+            modal.style.display = 'block';
+            document.getElementById('itemName').value = itemName;
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('/upload_image', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Image uploaded successfully!');
+                    location.reload(); // Refresh to update image
+                } else {
+                    alert('Upload failed: ' + data.error);
+                }
+            })
+            .catch(err => console.error('Upload error:', err));
+        });
+    </script>
+</body>
+</html>
