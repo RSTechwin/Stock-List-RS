@@ -153,6 +153,7 @@ def deleteStock():
 
                 # Save the workbook
                 workbook.save(EXCEL_FILE_PATH)
+                push_to_github() 
 
                 # Redirect back with success message
                 return redirect(url_for('deleteStock', message=f"Item '{item_to_delete}' deleted successfully."))
@@ -423,6 +424,10 @@ def get_category_items():
 
                 # Save changes
                 workbook.save(EXCEL_FILE_PATH)
+
+                # Push to GitHub only after saving changes
+                push_to_github()
+
                 return jsonify({"status": "success", "message": f"Item '{item_name}' updated successfully.", "new_stock": new_stock})
             else:
                 return jsonify({"status": "error", "message": "Item not found."}), 404
@@ -432,6 +437,7 @@ def get_category_items():
     # For GET requests, return all items
     items = df.fillna('--').to_dict(orient='records')
     return jsonify(items)
+
 
 
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/images')
@@ -763,6 +769,7 @@ def add_supplier():
         if new_supplier not in suppliers:
             suppliers.append(new_supplier)
             save_suppliers(suppliers)
+            push_to_github() 
             return jsonify({'status': 'success', 'message': f"Supplier '{new_supplier}' added.", 'suppliers': suppliers})
     return jsonify({'status': 'error', 'message': 'Invalid or duplicate supplier.'})
 
@@ -779,6 +786,7 @@ def delete_supplier():
         index_to_remove = normalized_suppliers.index(normalized_supplier_to_delete)
         removed_supplier = suppliers.pop(index_to_remove)
         save_suppliers(suppliers)
+        push_to_github() 
         return jsonify({'status': 'success', 'message': f"Supplier '{removed_supplier}' deleted.", 'suppliers': suppliers})
 
     return jsonify({'status': 'error', 'message': 'Supplier not found.'})
@@ -884,6 +892,7 @@ def enterOutStock():
         # Save the updated Excel file
         try:
             workbook.save(EXCEL_FILE_PATH)
+            push_to_github() 
         except Exception as e:
             return f"Error saving Excel file: {e}"
 
@@ -1141,6 +1150,7 @@ def generate_default_stock_list():
     # Save the DataFrame to the default path
     try:
         df.to_excel(EXCEL_FILE_PATH, index=False)
+        push_to_github() 
         print("Default stock list generated.")
     except Exception as e:
         print(f"Error generating default stock list: {e}")
@@ -1235,6 +1245,7 @@ def in_out_stock():
             return "Stock List file not found.", 404
 
         workbook = load_workbook(EXCEL_FILE_PATH)
+        push_to_github() 
         sheet1 = workbook["Sheet1"]
         sheet2 = workbook["Transaction"]
         sheet3 = workbook["updateSheet3"]  # Load Sheet3
@@ -1333,6 +1344,7 @@ def manage_technical():
         if new_technical and new_technical not in data:
             data.append(new_technical)
             save_json_data(TECHNICAL_JSON_FILE, data)
+            push_to_github() 
             return jsonify({'status': 'success', 'message': 'Technical added successfully!', 'data': data})
         return jsonify({'status': 'error', 'message': 'Technical already exists or invalid input!'})
 
@@ -1355,6 +1367,7 @@ def manage_sites():
         if new_site and new_site not in data:
             data.append(new_site)
             save_json_data(SITE_JSON_FILE, data)
+            push_to_github() 
             return jsonify({'status': 'success', 'message': 'Site added successfully!', 'data': data})
         return jsonify({'status': 'error', 'message': 'Site already exists or invalid input!'})
 
@@ -1415,6 +1428,7 @@ def edit_excel():
         if os.path.exists(EXCEL_FILE_PATH):
             try:
                 workbook = load_workbook(EXCEL_FILE_PATH)
+                push_to_github() 
                 sheet1 = workbook['Sheet1']
 
                 # Locate the item and update the Min. Qty directly in the sheet
@@ -1443,7 +1457,6 @@ def edit_excel():
     # For GET requests, render the HTML
     return render_template('edit_excel.html')
 
-
 import subprocess
 
 # GitHub credentials
@@ -1454,35 +1467,56 @@ GITHUB_REPO_URL = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_
 
 def push_to_github():
     try:
-        # Initialize Git in the current directory
-        subprocess.run(["git", "init"], check=True)
+        # Initialize Git if not already initialized
+        if not os.path.exists(".git"):
+            subprocess.run(["git", "init"], check=True)
 
-        # Configure Git user details
+        # Configure Git user details (set only if not already set)
         subprocess.run(["git", "config", "--global", "user.name", GITHUB_USERNAME], check=True)
         subprocess.run(["git", "config", "--global", "user.email", GITHUB_EMAIL], check=True)
 
-        # Add the updated Excel file to the staging area
-        subprocess.run(["git", "add", EXCEL_FILE_PATH], check=True)
+        # Add files to the staging area
+        subprocess.run(["git", "add", "."], check=True)
 
-        # Commit the changes
-        subprocess.run(["git", "commit", "-m", "Updated stock list"], check=True)
+        # Commit the changes (check for staged changes before committing)
+        commit_result = subprocess.run(
+            ["git", "diff", "--cached", "--quiet"],
+            check=False,
+            capture_output=True
+        )
+        if commit_result.returncode != 0:  # There are changes to commit
+            subprocess.run(["git", "commit", "-m", "Update files"], check=True)
 
-        # Add the remote repository
-        subprocess.run(["git", "remote", "add", "origin", GITHUB_REPO_URL], check=True)
+        # Check if the remote is already added
+        remote_check = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            capture_output=True,
+            text=True
+        )
+        if remote_check.returncode != 0:  # Remote not added
+            subprocess.run(["git", "remote", "add", "origin", GITHUB_REPO_URL], check=True)
 
-        # Push the changes to the remote repository
-        subprocess.run(["git", "push", "-u", "origin", "main", "--force"], check=True)
-
+        # Push changes
+        subprocess.run(["git", "push", "-u", "origin", "main"], check=True)
         print("Changes pushed to GitHub successfully.")
     except subprocess.CalledProcessError as e:
         print(f"Error pushing changes to GitHub: {e}")
+    except Exception as ex:
+        print(f"Unexpected error in push_to_github(): {ex}")
+
 
 
 if __name__ == '__main__':
-    # Check if the Excel file exists; if not, generate it
+    # Check if the Excel file exists; if not, pull the latest version from GitHub
     if not os.path.exists(EXCEL_FILE_PATH):
-        print("Stock list file not found. Generating a default stock list...")
-        generate_default_stock_list()
+        print("Excel file not found locally. Attempting to pull the latest version from GitHub...")
+        try:
+            subprocess.run(["git", "clone", GITHUB_REPO_URL, "."], check=True)
+            print("Successfully pulled the latest stockList.xlsx from GitHub.")
+        except subprocess.CalledProcessError as e:
+            print(f"Error pulling stockList.xlsx from GitHub: {e}")
     else:
-        print("Stock list file found. Proceeding without generating a default file.")
+        print("Excel file found locally. Proceeding without pulling from GitHub.")
+
     app.run(host='0.0.0.0', port=5000, debug=True)
+
