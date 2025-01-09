@@ -1467,38 +1467,42 @@ GITHUB_REPO_URL = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_
 
 def push_to_github():
     try:
-        # Check if the .git directory exists
-        if not os.path.exists(".git"):
-            subprocess.run(["git", "init"], check=True)
-
         # Check if the lock file exists and remove it
         lock_file = ".git/index.lock"
         if os.path.exists(lock_file):
             os.remove(lock_file)
-            print(f"Removed stale lock file: {lock_file}")
 
-        # Configure Git user details
-        subprocess.run(["git", "config", "--global", "user.name", GITHUB_USERNAME], check=True)
-        subprocess.run(["git", "config", "--global", "user.email", GITHUB_EMAIL], check=True)
+        # Configure Git if not already configured
+        subprocess.run(["git", "config", "--global", "user.name", "YourUsername"], check=True)
+        subprocess.run(["git", "config", "--global", "user.email", "youremail@example.com"], check=True)
 
-        # Add the updated files to staging
+        # Check if there are changes to commit
         subprocess.run(["git", "add", "."], check=True)
+        status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+        if not status.stdout.strip():
+            print("No changes to commit.")
+            return
 
-        # Commit the changes
+        # Commit changes
         subprocess.run(["git", "commit", "-m", "Update stockList.xlsx"], check=True)
 
-        # Check if the remote origin is already added
-        remotes = subprocess.run(["git", "remote"], capture_output=True, text=True)
-        if "origin" not in remotes.stdout:
-            subprocess.run(["git", "remote", "add", "origin", GITHUB_REPO_URL], check=True)
-
-        # Push the changes to GitHub
+        # Push to GitHub
         subprocess.run(["git", "push", "-u", "origin", "main", "--force"], check=True)
         print("Changes pushed to GitHub successfully.")
     except subprocess.CalledProcessError as e:
         print(f"Error pushing changes to GitHub: {e}")
     except Exception as e:
         print(f"Unexpected error: {e}")
+
+
+from filelock import FileLock
+
+def with_excel_lock(func):
+    def wrapper(*args, **kwargs):
+        lock_path = f"{EXCEL_FILE_PATH}.lock"
+        with FileLock(lock_path, timeout=10):
+            return func(*args, **kwargs)
+    return wrapper
 
 
 
