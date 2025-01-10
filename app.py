@@ -1457,6 +1457,8 @@ def edit_excel():
     # For GET requests, render the HTML
     return render_template('edit_excel.html')
 
+
+
 import os
 from dotenv import load_dotenv
 import subprocess
@@ -1471,8 +1473,7 @@ GITHUB_EMAIL = "rstechwinsetup@gmail.com"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()  # Strip any whitespace or newline characters
 GITHUB_REPO_URL = f"https://{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
 
-
-# Debugging: Print the token (only for testing, avoid in production)
+# Debugging: Print token information
 if not GITHUB_TOKEN:
     print("Error: GitHub token is missing. Check your .env file.")
 else:
@@ -1561,6 +1562,16 @@ def push_to_github():
                 print("No changes to commit.")
         except Exception as e:
             print(f"Git operation failed: {e}")
+
+---
+
+### **Step-by-Step Solution**
+
+#### **Step 1: Verify `.env` File**
+Ensure your `.env` file is properly formatted:
+```plaintext
+GITHUB_TOKEN=ghp_your_personal_access_token_here
+
 
 
 
