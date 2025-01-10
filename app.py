@@ -153,7 +153,6 @@ def deleteStock():
 
                 # Save the workbook
                 workbook.save(EXCEL_FILE_PATH)
-                push_to_github() 
 
                 # Redirect back with success message
                 return redirect(url_for('deleteStock', message=f"Item '{item_to_delete}' deleted successfully."))
@@ -424,10 +423,6 @@ def get_category_items():
 
                 # Save changes
                 workbook.save(EXCEL_FILE_PATH)
-
-                # Push to GitHub only after saving changes
-                push_to_github()
-
                 return jsonify({"status": "success", "message": f"Item '{item_name}' updated successfully.", "new_stock": new_stock})
             else:
                 return jsonify({"status": "error", "message": "Item not found."}), 404
@@ -437,8 +432,6 @@ def get_category_items():
     # For GET requests, return all items
     items = df.fillna('--').to_dict(orient='records')
     return jsonify(items)
-
-
 
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -769,7 +762,6 @@ def add_supplier():
         if new_supplier not in suppliers:
             suppliers.append(new_supplier)
             save_suppliers(suppliers)
-            push_to_github() 
             return jsonify({'status': 'success', 'message': f"Supplier '{new_supplier}' added.", 'suppliers': suppliers})
     return jsonify({'status': 'error', 'message': 'Invalid or duplicate supplier.'})
 
@@ -786,7 +778,6 @@ def delete_supplier():
         index_to_remove = normalized_suppliers.index(normalized_supplier_to_delete)
         removed_supplier = suppliers.pop(index_to_remove)
         save_suppliers(suppliers)
-        push_to_github() 
         return jsonify({'status': 'success', 'message': f"Supplier '{removed_supplier}' deleted.", 'suppliers': suppliers})
 
     return jsonify({'status': 'error', 'message': 'Supplier not found.'})
@@ -892,7 +883,6 @@ def enterOutStock():
         # Save the updated Excel file
         try:
             workbook.save(EXCEL_FILE_PATH)
-            push_to_github() 
         except Exception as e:
             return f"Error saving Excel file: {e}"
 
@@ -1150,7 +1140,6 @@ def generate_default_stock_list():
     # Save the DataFrame to the default path
     try:
         df.to_excel(EXCEL_FILE_PATH, index=False)
-        push_to_github() 
         print("Default stock list generated.")
     except Exception as e:
         print(f"Error generating default stock list: {e}")
@@ -1245,7 +1234,6 @@ def in_out_stock():
             return "Stock List file not found.", 404
 
         workbook = load_workbook(EXCEL_FILE_PATH)
-        push_to_github() 
         sheet1 = workbook["Sheet1"]
         sheet2 = workbook["Transaction"]
         sheet3 = workbook["updateSheet3"]  # Load Sheet3
@@ -1344,7 +1332,6 @@ def manage_technical():
         if new_technical and new_technical not in data:
             data.append(new_technical)
             save_json_data(TECHNICAL_JSON_FILE, data)
-            push_to_github() 
             return jsonify({'status': 'success', 'message': 'Technical added successfully!', 'data': data})
         return jsonify({'status': 'error', 'message': 'Technical already exists or invalid input!'})
 
@@ -1367,7 +1354,6 @@ def manage_sites():
         if new_site and new_site not in data:
             data.append(new_site)
             save_json_data(SITE_JSON_FILE, data)
-            push_to_github() 
             return jsonify({'status': 'success', 'message': 'Site added successfully!', 'data': data})
         return jsonify({'status': 'error', 'message': 'Site already exists or invalid input!'})
 
@@ -1428,7 +1414,6 @@ def edit_excel():
         if os.path.exists(EXCEL_FILE_PATH):
             try:
                 workbook = load_workbook(EXCEL_FILE_PATH)
-                push_to_github() 
                 sheet1 = workbook['Sheet1']
 
                 # Locate the item and update the Min. Qty directly in the sheet
@@ -1456,86 +1441,14 @@ def edit_excel():
 
     # For GET requests, render the HTML
     return render_template('edit_excel.html')
-import os
-from dotenv import load_dotenv
-from subprocess import CalledProcessError, run
-from threading import Lock
 
-# Load environment variables
-load_dotenv()
-
-# GitHub configuration
-GITHUB_USERNAME = "RSTechwin"
-GITHUB_EMAIL = "rstechwinsetup@gmail.com"
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()
-GITHUB_REPO_URL = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
-
-if not GITHUB_TOKEN:
-    print("Error: GitHub token is missing. Check your .env file.")
-else:
-    print(f"GitHub Token loaded: {GITHUB_TOKEN[:5]}... (truncated for security)")
-
-git_lock = Lock()
-
-def configure_git_user():
-    """
-    Configure Git username and email.
-    """
-    try:
-        run(["git", "config", "--global", "user.name", GITHUB_USERNAME], check=True)
-        run(["git", "config", "--global", "user.email", GITHUB_EMAIL], check=True)
-    except CalledProcessError as e:
-        print(f"Error configuring Git: {e}")
-
-def push_to_github():
-    """
-    Push updates to GitHub directly from the deployed application.
-    """
-    with git_lock:
-        try:
-            # Ensure Git repository is initialized
-            if not os.path.exists(".git"):
-                print("Initializing Git repository...")
-                run(["git", "init"], check=True)
-
-            # Configure Git user
-            configure_git_user()
-
-            # Ensure the remote origin is set correctly
-            try:
-                run(["git", "remote", "get-url", "origin"], check=True)
-            except CalledProcessError:
-                print("Setting remote origin...")
-                run(["git", "remote", "add", "origin", GITHUB_REPO_URL], check=True)
-
-            # Stage all changes
-            print("Staging changes...")
-            run(["git", "add", "."], check=True)
-
-            # Commit the changes
-            print("Committing changes...")
-            try:
-                run(["git", "commit", "-m", "Update stockList.xlsx"], check=True)
-            except CalledProcessError:
-                print("No changes to commit.")
-
-            # Push the changes to GitHub
-            print("Pushing changes to GitHub...")
-            run(["git", "push", "-u", "origin", "main"], check=True)
-            print("Changes pushed to GitHub successfully.")
-
-        except CalledProcessError as e:
-            print(f"Error pushing to GitHub: {e}")
 
 if __name__ == '__main__':
-    # Ensure GitHub token is loaded
-    if not GITHUB_TOKEN:
-        print("Error: GitHub token is missing. Check your .env file.")
+     # Check if the Excel file exists; if not, generate it
+    if not os.path.exists(EXCEL_FILE_PATH):
+        print("Stock list file not found. Generating a default stock list...")
+        generate_default_stock_list()
     else:
-        print(f"GitHub Token loaded: {GITHUB_TOKEN[:5]}... (truncated for security)")
-
-    # Run push to GitHub (example usage)
-    push_to_github()
-
-
-
+        print("Stock list file found. Proceeding without generating a default file.")
+    app.run(host='0.0.0.0', port=5000, debug=True)
+    
