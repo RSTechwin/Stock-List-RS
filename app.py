@@ -1483,14 +1483,13 @@ git_lock = Lock()
 
 def configure_git_user():
     """
-    Configure the Git user with the provided username and email.
+    Configure Git username and email.
     """
     try:
-        subprocess.run(["git", "config", "--global", "user.name", GITHUB_USERNAME], check=True)
-        subprocess.run(["git", "config", "--global", "user.email", GITHUB_EMAIL], check=True)
-        print("Git user configured successfully.")
-    except subprocess.CalledProcessError as e:
-        print(f"Error configuring Git user: {e}")
+        run(["git", "config", "--global", "user.name", GITHUB_USERNAME], check=True)
+        run(["git", "config", "--global", "user.email", GITHUB_EMAIL], check=True)
+    except CalledProcessError as e:
+        print(f"Error configuring Git: {e}")
 
 def remove_git_lock():
     """
@@ -1501,68 +1500,48 @@ def remove_git_lock():
         os.remove(lock_file)
         print("Git lock file removed.")
 
-def run_git_command(command):
-    """
-    Run a Git command and handle errors.
-    """
-    try:
-        subprocess.run(command, check=True, text=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Error running Git command: {' '.join(command)}\n{e}")
-        raise
-
 def push_to_github():
     """
-    Push updates to the GitHub repository using the GitHub token.
+    Push updates to GitHub directly from the deployed application.
     """
     with git_lock:
         try:
-            repo_path = os.getcwd()
-            os.chdir(repo_path)
-
-            configure_git_user()
-            remove_git_lock()
-
-            # Check if Git is initialized
+            # Initialize Git repository if not already done
             if not os.path.exists(".git"):
                 print("Initializing Git repository...")
-                run_git_command(["git", "init"])
+                run(["git", "init"], check=True)
 
-            # Ensure the remote 'origin' is set
+            # Configure Git user
+            configure_git_user()
+
+            # Set remote origin dynamically if not already set
             try:
-                run_git_command(["git", "remote", "get-url", "origin"])
-                print("Remote 'origin' already exists.")
-            except subprocess.CalledProcessError:
-                print("Adding remote 'origin'...")
-                run_git_command(["git", "remote", "add", "origin", GITHUB_REPO_URL])
+                run(["git", "remote", "get-url", "origin"], check=True)
+            except CalledProcessError:
+                print("Setting remote origin...")
+                run(["git", "remote", "add", "origin", GITHUB_REPO_URL], check=True)
 
-            # Fetch and rebase to ensure we are up-to-date
-            print("Fetching latest changes from GitHub...")
+            # Pull the latest changes to ensure no conflicts
             try:
-                run_git_command(["git", "fetch", "origin"])
-                run_git_command(["git", "branch", "--set-upstream-to=origin/main", "main"])
-                run_git_command(["git", "pull", "--rebase"])
-            except subprocess.CalledProcessError as fetch_error:
-                print(f"Warning: Could not fetch from remote repository: {fetch_error}")
+                run(["git", "pull", "--rebase", "origin", "main"], check=True)
+            except CalledProcessError as e:
+                print(f"Warning: Could not pull changes: {e}")
 
-            # Stage changes
+            # Stage the changes
             print("Staging changes...")
-            run_git_command(["git", "add", "files/stockList.xlsx"])
+            run(["git", "add", "."], check=True)
 
-            # Commit and push changes
-            print("Checking for changes...")
-            result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
-            if result.stdout.strip():
-                print("Committing changes...")
-                run_git_command(["git", "commit", "-m", "Update stockList.xlsx with latest changes"])
-                print("Pushing changes to GitHub...")
-                run_git_command(["git", "push", "-u", "origin", "main"])
-                print("Changes pushed to GitHub successfully.")
-            else:
-                print("No changes to commit.")
-        except Exception as e:
-            print(f"Git operation failed: {e}")
+            # Commit the changes
+            print("Committing changes...")
+            run(["git", "commit", "-m", "Update stockList.xlsx"], check=True)
 
+            # Push the changes
+            print("Pushing changes to GitHub...")
+            run(["git", "push", "-u", "origin", "main"], check=True)
+            print("Changes pushed to GitHub successfully.")
+
+        except CalledProcessError as e:
+            print(f"Error pushing to GitHub: {e}")
 ---
 
 ### **Step-by-Step Solution**
@@ -1573,20 +1552,43 @@ Ensure your `.env` file is properly formatted:
 GITHUB_TOKEN=ghp_your_personal_access_token_here
 
 
-
-
-
 if __name__ == '__main__':
-    # Check if the Excel file exists; if not, pull the latest version from GitHub
+    # Ensure GitHub token is loaded
+    if not GITHUB_TOKEN:
+        print("Error: GitHub token is missing. Check your .env file.")
+    else:
+        print(f"GitHub Token loaded: {GITHUB_TOKEN[:5]}... (truncated for security)")
+
+    # Check if the Excel file exists
     if not os.path.exists(EXCEL_FILE_PATH):
         print("Excel file not found locally. Attempting to pull the latest version from GitHub...")
+
         try:
-            subprocess.run(["git", "clone", GITHUB_REPO_URL, "."], check=True)
-            print("Successfully pulled the latest stockList.xlsx from GitHub.")
+            # Clone the repository into a temporary directory
+            temp_dir = tempfile.mkdtemp()
+            subprocess.run(["git", "clone", GITHUB_REPO_URL, temp_dir], check=True)
+            print("Repository cloned successfully.")
+
+            # Move the Excel file to the desired location
+            cloned_file_path = os.path.join(temp_dir, "files", "stockList.xlsx")
+            if os.path.exists(cloned_file_path):
+                os.makedirs(os.path.dirname(EXCEL_FILE_PATH), exist_ok=True)
+                shutil.move(cloned_file_path, EXCEL_FILE_PATH)
+                print(f"Excel file moved to: {EXCEL_FILE_PATH}")
+            else:
+                print("Error: stockList.xlsx not found in the cloned repository.")
+
         except subprocess.CalledProcessError as e:
             print(f"Error pulling stockList.xlsx from GitHub: {e}")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+        finally:
+            # Clean up the temporary directory
+            shutil.rmtree(temp_dir, ignore_errors=True)
     else:
         print("Excel file found locally. Proceeding without pulling from GitHub.")
 
+    # Start the Flask application
     app.run(host='0.0.0.0', port=5000, debug=True)
+
 
