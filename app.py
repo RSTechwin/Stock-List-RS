@@ -1491,34 +1491,31 @@ def run_git_command(command):
     except subprocess.CalledProcessError as e:
         print(f"Error running Git command: {' '.join(command)}\n{e}")
         raise
-
+        
 def push_to_github():
     with git_lock:
         try:
-            remove_git_lock()
             repo_path = os.getcwd()
             os.chdir(repo_path)
 
-            # Ensure you're on the main branch and set upstream if necessary
-            run_git_command(["git", "checkout", "main"])
-            run_git_command(["git", "branch", "--set-upstream-to=origin/main", "main"])
-            run_git_command(["git", "clean", "-fd"])  # Remove untracked files
+            # Ensure branch exists and set upstream
+            try:
+                run_git_command(["git", "checkout", "-B", "main"])
+                run_git_command(["git", "branch", "--set-upstream-to=origin/main", "main"])
+            except subprocess.CalledProcessError:
+                print("Main branch setup failed. Creating and pushing a new branch.")
+                run_git_command(["git", "checkout", "-b", "main"])
+                run_git_command(["git", "push", "-u", "origin", "main"])
 
-            run_git_command(["git", "stash"])  # Stash uncommitted changes
-            run_git_command(["git", "pull", "--rebase"])
-            run_git_command(["git", "stash", "pop"])  # Apply stashed changes
+            # Add, commit, and push changes
             run_git_command(["git", "add", "."])
-
-            result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
-            if result.stdout.strip():
+            if subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True).stdout.strip():
                 run_git_command(["git", "commit", "-m", "Update stock data"])
             run_git_command(["git", "push", "origin", "main"])
-
-            print("Changes pushed to GitHub.")
-        except subprocess.CalledProcessError as e:
-            print(f"Git operation failed: {e}")
+            print("Changes successfully pushed to GitHub.")
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            print(f"Git operation failed: {e}")
+
             
 from openpyxl import Workbook
 
