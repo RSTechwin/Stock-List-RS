@@ -1510,38 +1510,46 @@ def push_to_github():
             configure_git_user()
             remove_git_lock()
 
-            # Initialize Git if not already done
+            # Check if Git is initialized
             if not os.path.exists(".git"):
                 print("Initializing Git repository...")
                 run_git_command(["git", "init"])
+
+            # Ensure the remote 'origin' is set
+            try:
+                run_git_command(["git", "remote", "get-url", "origin"])
+                print("Remote 'origin' already exists.")
+            except subprocess.CalledProcessError:
+                print("Adding remote 'origin'...")
                 run_git_command(["git", "remote", "add", "origin", GITHUB_REPO_URL])
 
-            # Ensure remote origin is correct
-            run_git_command(["git", "remote", "set-url", "origin", GITHUB_REPO_URL])
-
-            # Fetch and rebase
+            # Fetch and rebase to ensure we are up-to-date
             print("Fetching latest changes from GitHub...")
-            run_git_command(["git", "fetch", "origin"])
-            run_git_command(["git", "branch", "--set-upstream-to=origin/main", "main"])
-            run_git_command(["git", "pull", "--rebase"])
+            try:
+                run_git_command(["git", "fetch", "origin"])
+                run_git_command(["git", "branch", "--set-upstream-to=origin/main", "main"])
+                run_git_command(["git", "pull", "--rebase"])
+            except subprocess.CalledProcessError as fetch_error:
+                print(f"Warning: Could not fetch from remote repository: {fetch_error}")
 
             # Stage changes
             print("Staging changes...")
             run_git_command(["git", "add", "files/stockList.xlsx"])
 
             # Commit and push changes
-            print("Committing changes...")
+            print("Checking for changes...")
             result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
             if result.stdout.strip():
+                print("Committing changes...")
                 run_git_command(["git", "commit", "-m", "Update stockList.xlsx with latest changes"])
                 print("Pushing changes to GitHub...")
                 run_git_command(["git", "push", "-u", "origin", "main"])
                 print("Changes pushed to GitHub successfully.")
             else:
                 print("No changes to commit.")
-
         except Exception as e:
             print(f"Git operation failed: {e}")
+
 
 
 
