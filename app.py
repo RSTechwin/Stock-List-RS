@@ -1510,29 +1510,30 @@ def push_to_github():
             configure_git_user()
             remove_git_lock()
 
-            # Initialize the repository if not already done
+            # Initialize Git if not already done
             if not os.path.exists(".git"):
                 print("Initializing Git repository...")
                 run_git_command(["git", "init"])
                 run_git_command(["git", "remote", "add", "origin", GITHUB_REPO_URL])
 
-            # Fetch and rebase to avoid conflicts
+            # Ensure remote origin is correct
+            run_git_command(["git", "remote", "set-url", "origin", GITHUB_REPO_URL])
+
+            # Fetch and rebase
             print("Fetching latest changes from GitHub...")
             run_git_command(["git", "fetch", "origin"])
-            run_git_command(["git", "reset", "--soft", "origin/main"])
+            run_git_command(["git", "branch", "--set-upstream-to=origin/main", "main"])
+            run_git_command(["git", "pull", "--rebase"])
 
             # Stage changes
             print("Staging changes...")
             run_git_command(["git", "add", "files/stockList.xlsx"])
 
-            # Commit changes if there are any
-            print("Checking for changes...")
+            # Commit and push changes
+            print("Committing changes...")
             result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
             if result.stdout.strip():
-                print("Committing changes...")
                 run_git_command(["git", "commit", "-m", "Update stockList.xlsx with latest changes"])
-
-                # Push changes
                 print("Pushing changes to GitHub...")
                 run_git_command(["git", "push", "-u", "origin", "main"])
                 print("Changes pushed to GitHub successfully.")
@@ -1541,6 +1542,7 @@ def push_to_github():
 
         except Exception as e:
             print(f"Git operation failed: {e}")
+
 
 
 
