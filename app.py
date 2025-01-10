@@ -1462,16 +1462,20 @@ from dotenv import load_dotenv
 import subprocess
 from threading import Lock
 
+# Load environment variables
+load_dotenv()
+
 # GitHub configuration
 GITHUB_USERNAME = "RSTechwin"
 GITHUB_EMAIL = "rstechwinsetup@gmail.com"
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # Ensure this is set in your environment
-GITHUB_REPO_URL = f"https://{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()  # Strip any whitespace or newline characters
+GITHUB_REPO_URL = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
 
-load_dotenv()
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-print(f"My GitHub Token: {GITHUB_TOKEN}")
-
+# Debugging: Print the token (only for testing, avoid in production)
+if not GITHUB_TOKEN:
+    print("Error: GitHub token is missing. Check your .env file.")
+else:
+    print(f"GitHub Token loaded: {GITHUB_TOKEN[:5]}... (truncated for security)")
 
 git_lock = Lock()
 
@@ -1482,6 +1486,7 @@ def configure_git_user():
     try:
         subprocess.run(["git", "config", "--global", "user.name", GITHUB_USERNAME], check=True)
         subprocess.run(["git", "config", "--global", "user.email", GITHUB_EMAIL], check=True)
+        print("Git user configured successfully.")
     except subprocess.CalledProcessError as e:
         print(f"Error configuring Git user: {e}")
 
@@ -1527,8 +1532,7 @@ def push_to_github():
                 print("Remote 'origin' already exists.")
             except subprocess.CalledProcessError:
                 print("Adding remote 'origin'...")
-                github_url = f"https://{GITHUB_USERNAME}:{os.getenv('GITHUB_TOKEN')}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
-                run_git_command(["git", "remote", "add", "origin", github_url])
+                run_git_command(["git", "remote", "add", "origin", GITHUB_REPO_URL])
 
             # Fetch and rebase to ensure we are up-to-date
             print("Fetching latest changes from GitHub...")
@@ -1556,6 +1560,7 @@ def push_to_github():
                 print("No changes to commit.")
         except Exception as e:
             print(f"Git operation failed: {e}")
+
 
 
 if __name__ == '__main__':
