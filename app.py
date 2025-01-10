@@ -1457,74 +1457,78 @@ def edit_excel():
     # For GET requests, render the HTML
     return render_template('edit_excel.html')
 
+import os
 import subprocess
+from threading import Lock
 
-# GitHub credentials
+# GitHub configuration
 GITHUB_USERNAME = "RSTechwin"
 GITHUB_EMAIL = "rstechwinsetup@gmail.com"
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # Ensure this is set in your Render environment
 GITHUB_REPO_URL = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
-
-def configure_git_user():
-    try:
-        subprocess.run(["git", "config", "--global", "user.name", GITHUB_USERNAME], check=True)
-        subprocess.run(["git", "config", "--global", "user.email", GITHUB_EMAIL], check=True)
-        print("Git user name and email configured successfully.")
-    except subprocess.CalledProcessError as e:
-        print(f"Error configuring Git user: {e}")
-
-from threading import Lock
-import subprocess
 
 git_lock = Lock()
 
+def configure_git_user():
+    """
+    Configure the Git user with the provided username and email.
+    """
+    try:
+        subprocess.run(["git", "config", "--global", "user.name", GITHUB_USERNAME], check=True)
+        subprocess.run(["git", "config", "--global", "user.email", GITHUB_EMAIL], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error configuring Git user: {e}")
+
 def remove_git_lock():
+    """
+    Remove Git lock file if it exists to prevent blocking Git operations.
+    """
     lock_file = os.path.join(os.getcwd(), ".git", "index.lock")
     if os.path.exists(lock_file):
         os.remove(lock_file)
         print("Git lock file removed.")
 
-
 def run_git_command(command):
+    """
+    Run a Git command and handle errors.
+    """
     try:
         subprocess.run(command, check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error running Git command: {' '.join(command)}\n{e}")
         raise
-        
+
 def push_to_github():
+    """
+    Push updates to the GitHub repository, ensuring the latest data is saved.
+    """
     with git_lock:
         try:
             repo_path = os.getcwd()
             os.chdir(repo_path)
 
-            # Ensure branch exists and set upstream
-            try:
-                run_git_command(["git", "checkout", "-B", "main"])
-                run_git_command(["git", "branch", "--set-upstream-to=origin/main", "main"])
-            except subprocess.CalledProcessError:
-                print("Main branch setup failed. Creating and pushing a new branch.")
-                run_git_command(["git", "checkout", "-b", "main"])
-                run_git_command(["git", "push", "-u", "origin", "main"])
+            configure_git_user()
+            remove_git_lock()
 
-            # Add, commit, and push changes
-            run_git_command(["git", "add", "."])
-            if subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True).stdout.strip():
-                run_git_command(["git", "commit", "-m", "Update stock data"])
-            run_git_command(["git", "push", "origin", "main"])
-            print("Changes successfully pushed to GitHub.")
+            # Ensure the branch exists and is up-to-date
+            run_git_command(["git", "checkout", "-B", "main"])
+            run_git_command(["git", "branch", "--set-upstream-to=origin/main", "main"])
+            run_git_command(["git", "pull", "--rebase"])
+
+            # Stage changes
+            run_git_command(["git", "add", "files/stockList.xlsx"])
+            
+            # Check if there are changes to commit
+            result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+            if result.stdout.strip():
+                run_git_command(["git", "commit", "-m", "Update stockList.xlsx with latest changes"])
+                run_git_command(["git", "push", "origin", "main"])
+                print("Changes pushed to GitHub.")
+            else:
+                print("No changes to commit.")
         except Exception as e:
             print(f"Git operation failed: {e}")
 
-            
-from openpyxl import Workbook
-
-def ensure_visible_sheet(workbook):
-    visible_sheets = [sheet for sheet in workbook.sheetnames if workbook[sheet].sheet_state == 'visible']
-    if not visible_sheets:
-        # Make the first sheet visible if all are hidden
-        first_sheet = workbook.sheetnames[0]
-        workbook[first_sheet].sheet_state = 'visible'
 
 
 
