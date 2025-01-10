@@ -27,6 +27,62 @@
             background-color: #f8d7da;
             border-color: #f5c6cb;
         }
+        /* Suggestion box styles */
+.suggestion-box {
+    position: absolute;
+    max-height: 200px; /* Limit the height to avoid overflow */
+    overflow-y: auto; /* Add scroll for overflow */
+    background-color: #fff; /* Clean white background */
+    border: 1px solid #ccc; /* Subtle border */
+    border-radius: 4px;
+    margin-top: 5px;
+    width: 100%; /* Matches the input width */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    z-index: 1000; /* Ensures it appears above other elements */
+    list-style: none;
+    padding: 0;
+}
+
+/* Suggestion items */
+.suggestion-item {
+    padding: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333; /* Dark text for better readability */
+    border-bottom: 1px solid #eee; /* Subtle separator between items */
+}
+
+/* Remove border from the last item */
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+/* Hover and active state for suggestion items */
+.suggestion-item:hover {
+    background-color: #f0f0f0; /* Light gray hover effect */
+    color: #000; /* Darker text color on hover */
+}
+
+/* Highlight for selected suggestion */
+.suggestion-item.active {
+    background-color: #007bff; /* Blue for active item */
+    color: #fff; /* White text for contrast */
+}
+
+/* Show suggestion box when it has content */
+#suggestion-box:empty {
+    display: none;
+}
+
+#suggestion-box:not(:empty) {
+    display: block;
+}
+
+/* Ensure suggestion box stays within container */
+.form-group {
+    position: relative; /* Ensure the suggestion box aligns with the input */
+}
+
 </style>
 <body>
     <div id="sideNav" class="sidenav">
@@ -68,13 +124,12 @@
 
         <h1>Edit Excel File</h1>
         <form id="editForm" method="POST" action="/edit_excel">
-            <!-- Search Bar for Item Name -->
             <div class="form-group">
                 <label for="search">Search Item Name:</label>
                 <input type="text" id="search" name="item_name" class="form-control" placeholder="Search Item Name" required>
                 <ul id="suggestion-box" class="suggestion-box"></ul>
             </div>
-
+            
             <!-- Input for Min. Qty -->
             <div class="form-group">
                 <label for="min_qty">Min. Qty:</label>
