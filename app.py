@@ -1457,13 +1457,10 @@ def edit_excel():
     # For GET requests, render the HTML
     return render_template('edit_excel.html')
 
-
-
 import os
 from dotenv import load_dotenv
-import subprocess
-from threading import Lock
 from subprocess import CalledProcessError, run
+from threading import Lock
 
 # Load environment variables
 load_dotenv()
@@ -1471,10 +1468,9 @@ load_dotenv()
 # GitHub configuration
 GITHUB_USERNAME = "RSTechwin"
 GITHUB_EMAIL = "rstechwinsetup@gmail.com"
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()  # Strip any whitespace or newline characters
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()
 GITHUB_REPO_URL = f"https://{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
 
-# Debugging: Print token information
 if not GITHUB_TOKEN:
     print("Error: GitHub token is missing. Check your .env file.")
 else:
@@ -1491,15 +1487,6 @@ def configure_git_user():
         run(["git", "config", "--global", "user.email", GITHUB_EMAIL], check=True)
     except CalledProcessError as e:
         print(f"Error configuring Git: {e}")
-
-def remove_git_lock():
-    """
-    Remove Git lock file if it exists to prevent blocking Git operations.
-    """
-    lock_file = os.path.join(os.getcwd(), ".git", "index.lock")
-    if os.path.exists(lock_file):
-        os.remove(lock_file)
-        print("Git lock file removed.")
 
 def push_to_github():
     """
@@ -1564,35 +1551,35 @@ if __name__ == '__main__':
         print(f"GitHub Token loaded: {GITHUB_TOKEN[:5]}... (truncated for security)")
 
     # Check if the Excel file exists
+    EXCEL_FILE_PATH = os.path.join("files", "stockList.xlsx")
     if not os.path.exists(EXCEL_FILE_PATH):
         print("Excel file not found locally. Attempting to pull the latest version from GitHub...")
 
         try:
             # Clone the repository into a temporary directory
-            temp_dir = tempfile.mkdtemp()
-            subprocess.run(["git", "clone", GITHUB_REPO_URL, temp_dir], check=True)
+            temp_dir = os.path.join(os.getcwd(), "temp_repo")
+            run(["git", "clone", GITHUB_REPO_URL, temp_dir], check=True)
             print("Repository cloned successfully.")
 
             # Move the Excel file to the desired location
             cloned_file_path = os.path.join(temp_dir, "files", "stockList.xlsx")
             if os.path.exists(cloned_file_path):
                 os.makedirs(os.path.dirname(EXCEL_FILE_PATH), exist_ok=True)
-                shutil.move(cloned_file_path, EXCEL_FILE_PATH)
+                os.rename(cloned_file_path, EXCEL_FILE_PATH)
                 print(f"Excel file moved to: {EXCEL_FILE_PATH}")
             else:
                 print("Error: stockList.xlsx not found in the cloned repository.")
 
-        except subprocess.CalledProcessError as e:
+        except CalledProcessError as e:
             print(f"Error pulling stockList.xlsx from GitHub: {e}")
-        except Exception as e:
-            print(f"Unexpected error: {e}")
         finally:
             # Clean up the temporary directory
-            shutil.rmtree(temp_dir, ignore_errors=True)
+            if os.path.exists(temp_dir):
+                os.rmdir(temp_dir)
     else:
         print("Excel file found locally. Proceeding without pulling from GitHub.")
 
     # Start the Flask application
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # app.run(host='0.0.0.0', port=5000, debug=True)  # Uncomment if the Flask app is integrated
 
 
