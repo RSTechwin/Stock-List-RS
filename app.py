@@ -1507,7 +1507,7 @@ def push_to_github():
     """
     with git_lock:
         try:
-            # Initialize Git repository if not already done
+            # Ensure Git repository is initialized
             if not os.path.exists(".git"):
                 print("Initializing Git repository...")
                 run(["git", "init"], check=True)
@@ -1515,20 +1515,32 @@ def push_to_github():
             # Configure Git user
             configure_git_user()
 
-            # Set remote origin dynamically if not already set
+            # Ensure the remote origin is set correctly
             try:
                 run(["git", "remote", "get-url", "origin"], check=True)
             except CalledProcessError:
                 print("Setting remote origin...")
                 run(["git", "remote", "add", "origin", GITHUB_REPO_URL], check=True)
 
-            # Pull the latest changes to ensure no conflicts
+            # Check out the main branch (if not already on it)
+            try:
+                run(["git", "checkout", "-b", "main"], check=True)
+            except CalledProcessError:
+                run(["git", "checkout", "main"], check=True)
+
+            # Handle unstaged changes by stashing them
+            try:
+                run(["git", "stash"], check=True)
+            except CalledProcessError:
+                print("No changes to stash.")
+
+            # Pull the latest changes with rebase
             try:
                 run(["git", "pull", "--rebase", "origin", "main"], check=True)
             except CalledProcessError as e:
                 print(f"Warning: Could not pull changes: {e}")
 
-            # Stage the changes
+            # Stage all changes
             print("Staging changes...")
             run(["git", "add", "."], check=True)
 
@@ -1536,7 +1548,7 @@ def push_to_github():
             print("Committing changes...")
             run(["git", "commit", "-m", "Update stockList.xlsx"], check=True)
 
-            # Push the changes
+            # Push the changes to GitHub
             print("Pushing changes to GitHub...")
             run(["git", "push", "-u", "origin", "main"], check=True)
             print("Changes pushed to GitHub successfully.")
