@@ -1456,77 +1456,56 @@ def edit_excel():
 
     # For GET requests, render the HTML
     return render_template('edit_excel.html')
-import os
-from dotenv import load_dotenv
-from subprocess import CalledProcessError, run
-from threading import Lock
+# Synchronization folder for local changes
+LOCAL_SYNC_FOLDER = "local_sync"
+os.makedirs(LOCAL_SYNC_FOLDER, exist_ok=True)
+LOCAL_EXCEL_FILE_PATH = os.path.join(LOCAL_SYNC_FOLDER, "stockList.xlsx")
 
-# Load environment variables
-load_dotenv()
 
-# GitHub configuration
-GITHUB_USERNAME = "RSTechwin"
-GITHUB_EMAIL = "rstechwinsetup@gmail.com"
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()
-GITHUB_REPO_URL = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
-
-if not GITHUB_TOKEN:
-    print("Error: GitHub token is missing. Check your .env file.")
-else:
-    print(f"GitHub Token loaded: {GITHUB_TOKEN[:5]}... (truncated for security)")
-
-git_lock = Lock()
-
-def configure_git_user():
+def sync_from_render_to_local():
     """
-    Configure Git username and email.
+    Synchronize the Excel file from the Render environment to the local file.
     """
     try:
-        run(["git", "config", "--global", "user.name", GITHUB_USERNAME], check=True)
-        run(["git", "config", "--global", "user.email", GITHUB_EMAIL], check=True)
-    except CalledProcessError as e:
-        print(f"Error configuring Git: {e}")
+        if os.path.exists(EXCEL_FILE_PATH):
+            shutil.copy(EXCEL_FILE_PATH, LOCAL_EXCEL_FILE_PATH)
+            print(f"File synchronized from Render to local: {LOCAL_EXCEL_FILE_PATH}")
+        else:
+            print("No file found on Render environment to sync.")
+    except Exception as e:
+        print(f"Error during synchronization: {e}")
 
-def push_to_github():
+
+def sync_from_local_to_render():
     """
-    Push updates to GitHub directly from the deployed application.
+    Synchronize the Excel file from the local environment to the Render environment.
     """
-    with git_lock:
-        try:
-            # Ensure Git repository is initialized
-            if not os.path.exists(".git"):
-                print("Initializing Git repository...")
-                run(["git", "init"], check=True)
+    try:
+        if os.path.exists(LOCAL_EXCEL_FILE_PATH):
+            shutil.copy(LOCAL_EXCEL_FILE_PATH, EXCEL_FILE_PATH)
+            print(f"File synchronized from local to Render: {EXCEL_FILE_PATH}")
+        else:
+            print("No file found locally to sync.")
+    except Exception as e:
+        print(f"Error during synchronization: {e}")
 
-            # Configure Git user
-            configure_git_user()
 
-            # Ensure the remote origin is set correctly
-            try:
-                run(["git", "remote", "get-url", "origin"], check=True)
-            except CalledProcessError:
-                print("Setting remote origin...")
-                run(["git", "remote", "add", "origin", GITHUB_REPO_URL], check=True)
-
-            # Stage all changes
-            print("Staging changes...")
-            run(["git", "add", "."], check=True)
-
-            # Commit the changes
-            print("Committing changes...")
-            try:
-                run(["git", "commit", "-m", "Update stockList.xlsx"], check=True)
-            except CalledProcessError:
-                print("No changes to commit.")
-
-            # Push the changes to GitHub
-            print("Pushing changes to GitHub...")
-            run(["git", "push", "-u", "origin", "main"], check=True)
-            print("Changes pushed to GitHub successfully.")
-
-        except CalledProcessError as e:
-            print(f"Error pushing to GitHub: {e}")
-
+@app.route('/sync', methods=['POST'])
+def sync_files():
+    """
+    API endpoint to manually trigger synchronization between Render and local files.
+    """
+    direction = request.form.get('direction', 'render_to_local')
+    try:
+        if direction == 'render_to_local':
+            sync_from_render_to_local()
+        elif direction == 'local_to_render':
+            sync_from_local_to_render()
+        else:
+            return jsonify({"error": "Invalid sync direction specified."}), 400
+        return jsonify({"success": True, "message": f"Sync {direction} completed successfully."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 if __name__ == '__main__':
     # Ensure GitHub token is loaded
     if not GITHUB_TOKEN:
