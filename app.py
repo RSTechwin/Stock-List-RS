@@ -1458,6 +1458,7 @@ def edit_excel():
     return render_template('edit_excel.html')
 
 import os
+from dotenv import load_dotenv
 import subprocess
 from threading import Lock
 
@@ -1466,6 +1467,11 @@ GITHUB_USERNAME = "RSTechwin"
 GITHUB_EMAIL = "rstechwinsetup@gmail.com"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # Ensure this is set in your environment
 GITHUB_REPO_URL = f"https://{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
+
+load_dotenv()
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+print(f"My GitHub Token: {GITHUB_TOKEN}")
+
 
 git_lock = Lock()
 
