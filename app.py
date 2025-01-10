@@ -1521,7 +1521,8 @@ def push_to_github():
                 print("Remote 'origin' already exists.")
             except subprocess.CalledProcessError:
                 print("Adding remote 'origin'...")
-                run_git_command(["git", "remote", "add", "origin", GITHUB_REPO_URL])
+                github_url = f"https://{GITHUB_USERNAME}:{os.getenv('GITHUB_TOKEN')}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
+                run_git_command(["git", "remote", "add", "origin", github_url])
 
             # Fetch and rebase to ensure we are up-to-date
             print("Fetching latest changes from GitHub...")
@@ -1549,12 +1550,6 @@ def push_to_github():
                 print("No changes to commit.")
         except Exception as e:
             print(f"Git operation failed: {e}")
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
