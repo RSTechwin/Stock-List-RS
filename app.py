@@ -1469,7 +1469,8 @@ load_dotenv()
 GITHUB_USERNAME = "RSTechwin"
 GITHUB_EMAIL = "rstechwinsetup@gmail.com"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()  # Strip any whitespace or newline characters
-GITHUB_REPO_URL = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
+GITHUB_REPO_URL = f"https://{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
+
 
 # Debugging: Print the token (only for testing, avoid in production)
 if not GITHUB_TOKEN:
@@ -1511,7 +1512,7 @@ def run_git_command(command):
 
 def push_to_github():
     """
-    Push updates to the GitHub repository, ensuring the latest data is saved.
+    Push updates to the GitHub repository using the GitHub token.
     """
     with git_lock:
         try:
@@ -1560,6 +1561,7 @@ def push_to_github():
                 print("No changes to commit.")
         except Exception as e:
             print(f"Git operation failed: {e}")
+
 
 
 
