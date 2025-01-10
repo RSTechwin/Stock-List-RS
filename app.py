@@ -1542,15 +1542,6 @@ def push_to_github():
 
         except CalledProcessError as e:
             print(f"Error pushing to GitHub: {e}")
----
-
-### **Step-by-Step Solution**
-
-#### **Step 1: Verify `.env` File**
-Ensure your `.env` file is properly formatted:
-```plaintext
-GITHUB_TOKEN=ghp_your_personal_access_token_here
-
 
 if __name__ == '__main__':
     # Ensure GitHub token is loaded
