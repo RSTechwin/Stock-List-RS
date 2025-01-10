@@ -1464,8 +1464,8 @@ from threading import Lock
 # GitHub configuration
 GITHUB_USERNAME = "RSTechwin"
 GITHUB_EMAIL = "rstechwinsetup@gmail.com"
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # Ensure this is set in your Render environment
-GITHUB_REPO_URL = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # Ensure this is set in your environment
+GITHUB_REPO_URL = f"https://{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
 
 git_lock = Lock()
 
@@ -1493,7 +1493,7 @@ def run_git_command(command):
     Run a Git command and handle errors.
     """
     try:
-        subprocess.run(command, check=True)
+        subprocess.run(command, check=True, text=True)
     except subprocess.CalledProcessError as e:
         print(f"Error running Git command: {' '.join(command)}\n{e}")
         raise
@@ -1510,22 +1510,35 @@ def push_to_github():
             configure_git_user()
             remove_git_lock()
 
-            # Ensure the branch exists and is up-to-date
-            run_git_command(["git", "checkout", "-B", "main"])
-            run_git_command(["git", "branch", "--set-upstream-to=origin/main", "main"])
-            run_git_command(["git", "pull", "--rebase"])
+            # Initialize the repository if not already done
+            if not os.path.exists(".git"):
+                print("Initializing Git repository...")
+                run_git_command(["git", "init"])
+                run_git_command(["git", "remote", "add", "origin", GITHUB_REPO_URL])
+
+            # Fetch and rebase to avoid conflicts
+            print("Fetching latest changes from GitHub...")
+            run_git_command(["git", "fetch", "origin"])
+            run_git_command(["git", "reset", "--soft", "origin/main"])
 
             # Stage changes
+            print("Staging changes...")
             run_git_command(["git", "add", "files/stockList.xlsx"])
-            
-            # Check if there are changes to commit
+
+            # Commit changes if there are any
+            print("Checking for changes...")
             result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
             if result.stdout.strip():
+                print("Committing changes...")
                 run_git_command(["git", "commit", "-m", "Update stockList.xlsx with latest changes"])
-                run_git_command(["git", "push", "origin", "main"])
-                print("Changes pushed to GitHub.")
+
+                # Push changes
+                print("Pushing changes to GitHub...")
+                run_git_command(["git", "push", "-u", "origin", "main"])
+                print("Changes pushed to GitHub successfully.")
             else:
                 print("No changes to commit.")
+
         except Exception as e:
             print(f"Git operation failed: {e}")
 
