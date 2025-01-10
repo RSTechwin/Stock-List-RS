@@ -1456,7 +1456,6 @@ def edit_excel():
 
     # For GET requests, render the HTML
     return render_template('edit_excel.html')
-
 import os
 from dotenv import load_dotenv
 from subprocess import CalledProcessError, run
@@ -1469,7 +1468,7 @@ load_dotenv()
 GITHUB_USERNAME = "RSTechwin"
 GITHUB_EMAIL = "rstechwinsetup@gmail.com"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()
-GITHUB_REPO_URL = f"https://{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
+GITHUB_REPO_URL = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
 
 if not GITHUB_TOKEN:
     print("Error: GitHub token is missing. Check your .env file.")
@@ -1509,31 +1508,16 @@ def push_to_github():
                 print("Setting remote origin...")
                 run(["git", "remote", "add", "origin", GITHUB_REPO_URL], check=True)
 
-            # Check out the main branch (if not already on it)
-            try:
-                run(["git", "checkout", "-b", "main"], check=True)
-            except CalledProcessError:
-                run(["git", "checkout", "main"], check=True)
-
-            # Handle unstaged changes by stashing them
-            try:
-                run(["git", "stash"], check=True)
-            except CalledProcessError:
-                print("No changes to stash.")
-
-            # Pull the latest changes with rebase
-            try:
-                run(["git", "pull", "--rebase", "origin", "main"], check=True)
-            except CalledProcessError as e:
-                print(f"Warning: Could not pull changes: {e}")
-
             # Stage all changes
             print("Staging changes...")
             run(["git", "add", "."], check=True)
 
             # Commit the changes
             print("Committing changes...")
-            run(["git", "commit", "-m", "Update stockList.xlsx"], check=True)
+            try:
+                run(["git", "commit", "-m", "Update stockList.xlsx"], check=True)
+            except CalledProcessError:
+                print("No changes to commit.")
 
             # Push the changes to GitHub
             print("Pushing changes to GitHub...")
@@ -1550,36 +1534,8 @@ if __name__ == '__main__':
     else:
         print(f"GitHub Token loaded: {GITHUB_TOKEN[:5]}... (truncated for security)")
 
-    # Check if the Excel file exists
-    EXCEL_FILE_PATH = os.path.join("files", "stockList.xlsx")
-    if not os.path.exists(EXCEL_FILE_PATH):
-        print("Excel file not found locally. Attempting to pull the latest version from GitHub...")
+    # Run push to GitHub (example usage)
+    push_to_github()
 
-        try:
-            # Clone the repository into a temporary directory
-            temp_dir = os.path.join(os.getcwd(), "temp_repo")
-            run(["git", "clone", GITHUB_REPO_URL, temp_dir], check=True)
-            print("Repository cloned successfully.")
-
-            # Move the Excel file to the desired location
-            cloned_file_path = os.path.join(temp_dir, "files", "stockList.xlsx")
-            if os.path.exists(cloned_file_path):
-                os.makedirs(os.path.dirname(EXCEL_FILE_PATH), exist_ok=True)
-                os.rename(cloned_file_path, EXCEL_FILE_PATH)
-                print(f"Excel file moved to: {EXCEL_FILE_PATH}")
-            else:
-                print("Error: stockList.xlsx not found in the cloned repository.")
-
-        except CalledProcessError as e:
-            print(f"Error pulling stockList.xlsx from GitHub: {e}")
-        finally:
-            # Clean up the temporary directory
-            if os.path.exists(temp_dir):
-                os.rmdir(temp_dir)
-    else:
-        print("Excel file found locally. Proceeding without pulling from GitHub.")
-
-    # Start the Flask application
-    # app.run(host='0.0.0.0', port=5000, debug=True)  # Uncomment if the Flask app is integrated
 
 
