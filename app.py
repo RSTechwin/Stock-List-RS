@@ -1463,6 +1463,7 @@ import os
 from dotenv import load_dotenv
 import subprocess
 from threading import Lock
+from subprocess import CalledProcessError, run
 
 # Load environment variables
 load_dotenv()
