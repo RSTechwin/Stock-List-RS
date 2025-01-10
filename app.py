@@ -1498,6 +1498,10 @@ def push_to_github():
             repo_path = os.getcwd()
             os.chdir(repo_path)
 
+            # Ensure you're on the main branch
+            run_git_command(["git", "checkout", "main"])
+            run_git_command(["git", "clean", "-fd"])  # Force remove untracked files
+            
             run_git_command(["git", "stash"])  # Stash uncommitted changes
             run_git_command(["git", "pull", "--rebase"])
             run_git_command(["git", "stash", "pop"])  # Apply stashed changes
@@ -1513,6 +1517,7 @@ def push_to_github():
             print(f"Git operation failed: {e}")
         except Exception as e:
             print(f"Unexpected error: {e}")
+
 
 
 
