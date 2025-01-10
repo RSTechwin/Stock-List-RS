@@ -1484,6 +1484,7 @@ def remove_git_lock():
         os.remove(lock_file)
         print("Git lock file removed.")
 
+
 def run_git_command(command):
     try:
         subprocess.run(command, check=True)
@@ -1498,10 +1499,11 @@ def push_to_github():
             repo_path = os.getcwd()
             os.chdir(repo_path)
 
-            # Ensure you're on the main branch
+            # Ensure you're on the main branch and set upstream if necessary
             run_git_command(["git", "checkout", "main"])
-            run_git_command(["git", "clean", "-fd"])  # Force remove untracked files
-            
+            run_git_command(["git", "branch", "--set-upstream-to=origin/main", "main"])
+            run_git_command(["git", "clean", "-fd"])  # Remove untracked files
+
             run_git_command(["git", "stash"])  # Stash uncommitted changes
             run_git_command(["git", "pull", "--rebase"])
             run_git_command(["git", "stash", "pop"])  # Apply stashed changes
@@ -1517,6 +1519,16 @@ def push_to_github():
             print(f"Git operation failed: {e}")
         except Exception as e:
             print(f"Unexpected error: {e}")
+            
+from openpyxl import Workbook
+
+def ensure_visible_sheet(workbook):
+    visible_sheets = [sheet for sheet in workbook.sheetnames if workbook[sheet].sheet_state == 'visible']
+    if not visible_sheets:
+        # Make the first sheet visible if all are hidden
+        first_sheet = workbook.sheetnames[0]
+        workbook[first_sheet].sheet_state = 'visible'
+
 
 
 
