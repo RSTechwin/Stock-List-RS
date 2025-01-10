@@ -1456,67 +1456,76 @@ def edit_excel():
 
     # For GET requests, render the HTML
     return render_template('edit_excel.html')
-# Synchronization folder for local changes
-LOCAL_SYNC_FOLDER = "local_sync"
-os.makedirs(LOCAL_SYNC_FOLDER, exist_ok=True)
-LOCAL_EXCEL_FILE_PATH = os.path.join(LOCAL_SYNC_FOLDER, "stockList.xlsx")
+import os
+from dotenv import load_dotenv
+from subprocess import CalledProcessError, run
+from threading import Lock
 
+# Load environment variables
+load_dotenv()
 
-def sync_from_render_to_local():
+# GitHub configuration
+GITHUB_USERNAME = "RSTechwin"
+GITHUB_EMAIL = "rstechwinsetup@gmail.com"
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()
+GITHUB_REPO_URL = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
+
+if not GITHUB_TOKEN:
+    print("Error: GitHub token is missing. Check your .env file.")
+else:
+    print(f"GitHub Token loaded: {GITHUB_TOKEN[:5]}... (truncated for security)")
+
+git_lock = Lock()
+
+def configure_git_user():
     """
-    Synchronize the Excel file from the Render environment to the local file.
+    Configure Git username and email.
     """
     try:
-        if os.path.exists(EXCEL_FILE_PATH):
-            shutil.copy(EXCEL_FILE_PATH, LOCAL_EXCEL_FILE_PATH)
-            print(f"File synchronized from Render to local: {LOCAL_EXCEL_FILE_PATH}")
-        else:
-            print("No file found on Render environment to sync.")
-    except Exception as e:
-        print(f"Error during synchronization: {e}")
+        run(["git", "config", "--global", "user.name", GITHUB_USERNAME], check=True)
+        run(["git", "config", "--global", "user.email", GITHUB_EMAIL], check=True)
+    except CalledProcessError as e:
+        print(f"Error configuring Git: {e}")
 
-
-def sync_from_local_to_render():
+def push_to_github():
     """
-    Synchronize the Excel file from the local environment to the Render environment.
+    Push updates to GitHub directly from the deployed application.
     """
-    try:
-        if os.path.exists(LOCAL_EXCEL_FILE_PATH):
-            shutil.copy(LOCAL_EXCEL_FILE_PATH, EXCEL_FILE_PATH)
-            print(f"File synchronized from local to Render: {EXCEL_FILE_PATH}")
-        else:
-            print("No file found locally to sync.")
-    except Exception as e:
-        print(f"Error during synchronization: {e}")
-
-@app.route('/sync', methods=['POST'])
-def sync_files():
-    direction = request.form.get('direction')
-    if direction == "render_to_local":
+    with git_lock:
         try:
-            # Ensure the Excel file exists on the server
-            if not os.path.exists(EXCEL_FILE_PATH):
-                return jsonify({"error": "Excel file not found on the server"}), 404
+            # Ensure Git repository is initialized
+            if not os.path.exists(".git"):
+                print("Initializing Git repository...")
+                run(["git", "init"], check=True)
 
-            # Send the file to the client
-            return send_file(EXCEL_FILE_PATH, as_attachment=True)
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+            # Configure Git user
+            configure_git_user()
 
-    elif direction == "local_to_render":
-        try:
-            # Get the uploaded file
-            file = request.files.get('file')
-            if not file:
-                return jsonify({"error": "No file provided"}), 400
+            # Ensure the remote origin is set correctly
+            try:
+                run(["git", "remote", "get-url", "origin"], check=True)
+            except CalledProcessError:
+                print("Setting remote origin...")
+                run(["git", "remote", "add", "origin", GITHUB_REPO_URL], check=True)
 
-            # Save the file to the server
-            file.save(EXCEL_FILE_PATH)
-            return jsonify({"success": "File successfully uploaded to the server"}), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-    else:
-        return jsonify({"error": "Invalid direction specified"}), 400
+            # Stage all changes
+            print("Staging changes...")
+            run(["git", "add", "."], check=True)
+
+            # Commit the changes
+            print("Committing changes...")
+            try:
+                run(["git", "commit", "-m", "Update stockList.xlsx"], check=True)
+            except CalledProcessError:
+                print("No changes to commit.")
+
+            # Push the changes to GitHub
+            print("Pushing changes to GitHub...")
+            run(["git", "push", "-u", "origin", "main"], check=True)
+            print("Changes pushed to GitHub successfully.")
+
+        except CalledProcessError as e:
+            print(f"Error pushing to GitHub: {e}")
 
 if __name__ == '__main__':
     # Ensure GitHub token is loaded
