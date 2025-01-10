@@ -1489,23 +1489,35 @@ def sync_from_local_to_render():
     except Exception as e:
         print(f"Error during synchronization: {e}")
 
-
 @app.route('/sync', methods=['POST'])
 def sync_files():
-    """
-    API endpoint to manually trigger synchronization between Render and local files.
-    """
-    direction = request.form.get('direction', 'render_to_local')
-    try:
-        if direction == 'render_to_local':
-            sync_from_render_to_local()
-        elif direction == 'local_to_render':
-            sync_from_local_to_render()
-        else:
-            return jsonify({"error": "Invalid sync direction specified."}), 400
-        return jsonify({"success": True, "message": f"Sync {direction} completed successfully."})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    direction = request.form.get('direction')
+    if direction == "render_to_local":
+        try:
+            # Ensure the Excel file exists on the server
+            if not os.path.exists(EXCEL_FILE_PATH):
+                return jsonify({"error": "Excel file not found on the server"}), 404
+
+            # Send the file to the client
+            return send_file(EXCEL_FILE_PATH, as_attachment=True)
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    elif direction == "local_to_render":
+        try:
+            # Get the uploaded file
+            file = request.files.get('file')
+            if not file:
+                return jsonify({"error": "No file provided"}), 400
+
+            # Save the file to the server
+            file.save(EXCEL_FILE_PATH)
+            return jsonify({"success": "File successfully uploaded to the server"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    else:
+        return jsonify({"error": "Invalid direction specified"}), 400
+
 if __name__ == '__main__':
     # Ensure GitHub token is loaded
     if not GITHUB_TOKEN:
