@@ -1457,6 +1457,27 @@ def edit_excel():
     # For GET requests, render the HTML
     return render_template('edit_excel.html')
 
+import subprocess
+
+# GitHub credentials
+GITHUB_USERNAME = "RSTechwin"
+GITHUB_EMAIL = "rstechwinsetup@gmail.com"
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+GITHUB_REPO_URL = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
+
+def configure_git_user():
+    try:
+        subprocess.run(["git", "config", "--global", "user.name", GITHUB_USERNAME], check=True)
+        subprocess.run(["git", "config", "--global", "user.email", GITHUB_EMAIL], check=True)
+        print("Git user name and email configured successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error configuring Git user: {e}")
+
+from threading import Lock
+import subprocess
+
+git_lock = Lock()
+
 def remove_git_lock():
     lock_file = os.path.join(os.getcwd(), ".git", "index.lock")
     if os.path.exists(lock_file):
@@ -1470,19 +1491,6 @@ def run_git_command(command):
         print(f"Error running Git command: {' '.join(command)}\n{e}")
         raise
 
-
-import subprocess
-
-# GitHub credentials
-GITHUB_USERNAME = "RSTechwin"
-GITHUB_EMAIL = "rstechwinsetup@gmail.com"
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-GITHUB_REPO_URL = f"https://{GITHUB_USERNAME}:{GITHUB_TOKEN}@github.com/{GITHUB_USERNAME}/Stock-List-RS.git"
-
-from threading import Lock
-
-git_lock = Lock()
-
 def push_to_github():
     with git_lock:
         try:
@@ -1490,11 +1498,14 @@ def push_to_github():
             repo_path = os.getcwd()
             os.chdir(repo_path)
 
+            run_git_command(["git", "stash"])  # Stash uncommitted changes
+            run_git_command(["git", "pull", "--rebase"])
+            run_git_command(["git", "stash", "pop"])  # Apply stashed changes
             run_git_command(["git", "add", "."])
+
             result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
             if result.stdout.strip():
                 run_git_command(["git", "commit", "-m", "Update stock data"])
-            run_git_command(["git", "pull", "--rebase"])
             run_git_command(["git", "push", "origin", "main"])
 
             print("Changes pushed to GitHub.")
@@ -1502,6 +1513,7 @@ def push_to_github():
             print(f"Git operation failed: {e}")
         except Exception as e:
             print(f"Unexpected error: {e}")
+
 
 
 if __name__ == '__main__':
